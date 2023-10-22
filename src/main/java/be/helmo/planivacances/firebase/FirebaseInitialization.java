@@ -1,4 +1,4 @@
-package be.helmo.restplanivacances.firebase;
+package be.helmo.planivacances.firebase;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;

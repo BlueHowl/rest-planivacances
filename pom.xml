@@ -79,7 +79,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>${project.artifactId}</finalName>
+		<finalName>REST_CAO_BART</finalName>
 
 		<plugins>
 			<plugin>

@@ -1,4 +1,4 @@
-package be.helmo.restplanivacances.entity;
+package be.helmo.planivacances.entity;
 
 import lombok.Data;
 

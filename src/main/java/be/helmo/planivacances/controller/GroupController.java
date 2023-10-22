@@ -1,7 +1,7 @@
-package be.helmo.restplanivacances.controller;
+package be.helmo.planivacances.controller;
 
-import be.helmo.restplanivacances.entity.Group;
-import be.helmo.restplanivacances.service.GroupService;
+import be.helmo.planivacances.entity.Group;
+import be.helmo.planivacances.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

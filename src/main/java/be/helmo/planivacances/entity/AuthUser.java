@@ -1,15 +1,21 @@
-package be.helmo.restplanivacances.entity;
+package be.helmo.planivacances.entity;
 
 import lombok.Data;
 
 @Data
 public class AuthUser {
 
+    private String username;
     private String mail;
-
     private String password;
 
-    private String username;
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getMail() {
         return mail;
@@ -25,13 +31,5 @@ public class AuthUser {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 }

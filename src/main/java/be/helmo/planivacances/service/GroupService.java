@@ -1,6 +1,6 @@
-package be.helmo.restplanivacances.service;
+package be.helmo.planivacances.service;
 
-import be.helmo.restplanivacances.entity.Group;
+import be.helmo.planivacances.entity.Group;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
