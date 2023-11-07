@@ -1,21 +1,20 @@
-package be.helmo.planivacances.entity;
+package be.helmo.planivacances.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
 @Data
-public class AuthUser {
+public class LoginUserDTO {
 
-    private String username;
+    @NotNull
+    @Email(message = "Addresse mail invalide")
     private String mail;
+    @NotNull
+    @Size(min = 8, message = "Le mot de passe doit faire minimum 8 caractères")
     private String password;
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     public String getMail() {
         return mail;

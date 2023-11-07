@@ -1,6 +1,6 @@
 package be.helmo.planivacances.service;
 
-import be.helmo.planivacances.entity.Group;
+import be.helmo.planivacances.model.Group;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -19,18 +19,21 @@ public class GroupService {
 
     private static final String COLLECTION_NAME = "groups";
 
-    public String createOrUpdateGroup(Group group) throws ExecutionException, InterruptedException {
+    public String createGroup(Group group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(COLLECTION_NAME).document();
 
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(group.getUid()).set(group);
+        ApiFuture<WriteResult> result = dr.set(group);
 
-        return cApiFuture.get().getUpdateTime().toString();
+        // Block until the document is written (optional)
+        result.get();
+
+        return dr.getId();
     }
 
-    public Group getGroup(String groupUid) throws ExecutionException, InterruptedException {
+    public Group getGroup(String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-
-        DocumentReference dr = fdb.collection(COLLECTION_NAME).document(groupUid);
+        DocumentReference dr = fdb.collection(COLLECTION_NAME).document(gid);
         ApiFuture<DocumentSnapshot> future = dr.get();
 
         DocumentSnapshot document = future.get();
@@ -40,7 +43,6 @@ public class GroupService {
 
     public List<Group> getGroups() throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-
         Iterable<DocumentReference> dr = fdb.collection(COLLECTION_NAME).listDocuments();
         Iterator<DocumentReference> it = dr.iterator();
 
@@ -57,11 +59,17 @@ public class GroupService {
         return groupList;
     }
 
-    public String deleteGroup(String groupUid) throws ExecutionException, InterruptedException {
+    public String updateGroup(String gid, Group group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
+        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(gid).set(group);
 
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(groupUid).delete();
-        return String.format("Group %s has been deleted", groupUid);
+        return String.format("\"Groupe modifié le %s\"", cApiFuture.get().getUpdateTime().toDate()); //todo formattage manuel autorisé?
+    }
+
+    public String deleteGroup(String gid) {
+        Firestore fdb = FirestoreClient.getFirestore();
+        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(gid).delete();
+        return String.format("\"Le groupe %s à bien été supprimé\"", gid);
     }
 
 }

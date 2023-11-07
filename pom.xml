@@ -32,6 +32,13 @@
 			<version>1.7.0</version>
 		</dependency>
 
+		<!--Scrypt-->
+		<dependency>
+			<groupId>com.lambdaworks</groupId>
+			<artifactId>scrypt</artifactId>
+			<version>1.4.0</version>
+		</dependency>
+
 		<!--
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

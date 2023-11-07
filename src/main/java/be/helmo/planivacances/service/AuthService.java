@@ -1,11 +1,11 @@
 package be.helmo.planivacances.service;
 
-import be.helmo.planivacances.entity.AuthUser;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
-import com.google.firebase.auth.UserRecord;
+import be.helmo.planivacances.model.dto.RegisterUserDTO;
+import be.helmo.planivacances.util.FirebaseScrypt;
+import com.google.firebase.auth.*;
 import org.springframework.stereotype.Service;
+
+import java.security.GeneralSecurityException;
 
 @Service
 public class AuthService {
@@ -16,7 +16,7 @@ public class AuthService {
      * @return (String) Retourne un token personnalisé du nouvel utilisateur
      * @throws FirebaseAuthException
      */
-    public String createUser(AuthUser authUser) throws FirebaseAuthException {
+    public String createUser(RegisterUserDTO authUser) throws FirebaseAuthException {
         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                 .setEmail(authUser.getMail())
                 .setPassword(authUser.getPassword())
@@ -29,15 +29,47 @@ public class AuthService {
     }
 
     /**
-     * Vérifie si le jeton d'authentification reçu est valide et renvoie l'uid utilisateur si le token est valide
-     * @param header (String) Bearer Jeton d'authentification
-     * @return (String) uid de l'utilisateur
+     * Recupère le token d'identification de l'utilisateur correspondant au mail et au mot de passe
+     * @param mail (String) Email
+     * @param password (String) Mot de passe
+     * @return (String) token
+     * @throws FirebaseAuthException
+     * @throws GeneralSecurityException
+     */
+    public String loginUser(String mail, String password) throws FirebaseAuthException, GeneralSecurityException {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseScrypt fbs = new FirebaseScrypt();
+
+        ListUsersPage page = auth.listUsers(null);
+
+        //pas d'autre solution que de checker 1 par 1 tous les utilisateurs
+        //snn obligé de passer par firebase en frontend
+        for (ExportedUserRecord response : page.iterateAll()) {
+            if(response.getEmail().equals(mail)) {
+                if(fbs.check(password, response.getPasswordHash(), response.getPasswordSalt())) {
+                    return auth.createCustomToken(response.getUid());
+                }
+            }
+        }
+
+        return "\"Adresse mail ou mot de passe incorrect\"";
+    }
+
+    /**
+     * Vérifie si le jeton d'authentification reçu est valide alors renvoie l'uid utilisateur sinon null
+     * @param authorizationHeader (String) Bearer Jeton d'authentification
+     * @return (String) si token valide uid sinon null
      * @throws FirebaseAuthException
      */
-    public String verifyToken(String header) throws FirebaseAuthException {
-        String token = header.substring(7); // Supprime "Bearer " du début
-        FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
-        return decodedToken.getUid();
+    public String verifyToken(String authorizationHeader) throws FirebaseAuthException {
+        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7); // Supprime "Bearer " du début
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
+
+            return decodedToken.getUid();
+        }
+
+        return null;
 
     }
 
