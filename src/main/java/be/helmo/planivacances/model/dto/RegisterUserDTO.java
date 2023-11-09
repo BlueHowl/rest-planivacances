@@ -19,24 +19,30 @@ public class RegisterUserDTO {
     @Size(min = 8, message = "Le mot de passe doit faire minimum 8 caractères")
     private String password;
 
+
+    //getters
+
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getMail() {
         return mail;
     }
 
-    public void setMail(String mail) {
-        this.mail = mail;
-    }
-
     public String getPassword() {
         return password;
+    }
+
+
+    //setters
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setMail(String mail) {
+        this.mail = mail;
     }
 
     public void setPassword(String password) {

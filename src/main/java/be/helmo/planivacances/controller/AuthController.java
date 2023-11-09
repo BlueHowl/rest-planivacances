@@ -27,7 +27,7 @@ public class AuthController {
      * @throws FirebaseAuthException
      */
     @Operation(summary = "Crée un utilisateur à partir d'un nom d'utilisateur, mail et mot de passe")
-    @PostMapping("/account")
+    @PostMapping("/register")
     public String createUser(@Valid @RequestBody RegisterUserDTO authUser) throws FirebaseAuthException {
         return authServices.createUser(authUser);
     }
@@ -39,7 +39,7 @@ public class AuthController {
      * @throws FirebaseAuthException
      * @throws GeneralSecurityException
      */
-    @PostMapping("/account/logger")
+    @PostMapping("/login")
     public String loginUser(@Valid @RequestBody LoginUserDTO authUser)
             throws FirebaseAuthException, GeneralSecurityException {
 
