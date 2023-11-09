@@ -40,7 +40,11 @@ public class GroupController {
             group.setOwner(uid);
             String gid = groupServices.createGroup(group);
 
-            placeServices.createPlace(gid, place);
+            String pid = placeServices.createPlace(gid, place);
+
+            group.setPlaceId(pid);
+            groupServices.updateGroup(gid, group);
+
 
             return gid;
         }

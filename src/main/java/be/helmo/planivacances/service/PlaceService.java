@@ -23,12 +23,17 @@ public class PlaceService {
     public String createPlace(String gid, Place place) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME)
+        DocumentReference dr = fdb.collection(COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
-                .document().set(place);
+                .document();
 
-        return String.format("\"Lieu ajouté le %s\"", cApiFuture.get().getUpdateTime().toDate()); //todo formattage manuel autorisé?
+        ApiFuture<WriteResult> result = dr.set(place);
+
+        // Block until the document is written (optional)
+        result.get();
+
+        return dr.getId();
     }
 
     public Place getPlace(String gid, String pid) throws ExecutionException, InterruptedException {

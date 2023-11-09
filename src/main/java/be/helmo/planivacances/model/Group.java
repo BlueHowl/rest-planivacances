@@ -9,6 +9,22 @@ import java.util.Date;
 
 @Data
 public class Group {
+    //private String uid;
+    @NotNull
+    @Size(min = 4, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
+    private String groupName;
+    private String description;
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    private Date startDate;
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
+    private Date endDate;
+    @NotNull
+    private String placeId;
+    private boolean isPublished;
+    @NotNull
+    private String owner;
 
     public Group(String groupName,
                  String description,
@@ -25,24 +41,6 @@ public class Group {
         this.isPublished = isPublished;
         this.owner = owner;
     }
-
-    //private String uid;
-    @NotNull
-    @Size(min = 4, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
-    private String groupName;
-    private String description;
-    @NotNull
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private Date startDate;
-    @NotNull
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
-    private Date endDate;
-    @NotNull
-    private String placeId;
-    private boolean isPublished;
-    @NotNull
-    private String owner;
-
 
     //getters
     /*public String getUid() {

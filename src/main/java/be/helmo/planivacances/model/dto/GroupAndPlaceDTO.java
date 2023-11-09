@@ -21,8 +21,11 @@ public class GroupAndPlaceDTO {
         return place;
     }
 
-    public void setGroup(Group group, Place place) {
+    public void setGroup(Group group) {
         this.group = group;
+    }
+
+    public void setPlace(Place place) {
         this.place = place;
     }
 }
