@@ -10,13 +10,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import be.helmo.planivacances.service.UserService;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 @CrossOrigin(origins = "*") // TODO only for dev to allow cors
 public class UserController {
     @Autowired
     private UserService userServices;
 
-    @GetMapping("/users/number/flux")
+    @GetMapping("/number")
     public SseEmitter getNumberOfUsersStream() {
         SseEmitter sseEmitter = userServices.getNumberUsersStream();
         userServices.sendSSEUpdate();
