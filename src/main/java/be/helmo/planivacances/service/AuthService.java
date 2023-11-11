@@ -65,7 +65,6 @@ public class AuthService {
         if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7); // Supprime "Bearer " du début
             FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
-
             return decodedToken.getUid();
         }
 

@@ -68,7 +68,6 @@ public class GroupController {
     public List<Group> getGroups(@RequestHeader("Authorization") String authorizationHeader) throws ExecutionException, InterruptedException, FirebaseAuthException {
         if (authServices.verifyToken(authorizationHeader) != null) {
             return groupServices.getGroups();
-
         }
 
         return null;

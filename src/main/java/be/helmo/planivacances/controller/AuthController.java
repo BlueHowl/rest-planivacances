@@ -4,6 +4,7 @@ package be.helmo.planivacances.controller;
 import be.helmo.planivacances.model.dto.LoginUserDTO;
 import be.helmo.planivacances.model.dto.RegisterUserDTO;
 import be.helmo.planivacances.service.AuthService;
+import be.helmo.planivacances.service.UserService;
 import com.google.firebase.auth.FirebaseAuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +14,14 @@ import javax.validation.Valid;
 import java.security.GeneralSecurityException;
 
 @RestController
-@CrossOrigin(origins = "*") //TODO only for dev to allow cors
+@CrossOrigin(origins = "*",allowedHeaders = "*") //TODO only for dev to allow cors
 @RequestMapping("/api/auth")
 public class AuthController {
 
     @Autowired
     private AuthService authServices;
+    @Autowired
+    private UserService userServices;
 
     /**
      * [Post] Crée un utilisateur à partir d'un mail, mot de passe et nom d'utilisateur
@@ -29,6 +32,7 @@ public class AuthController {
     @Operation(summary = "Crée un utilisateur à partir d'un nom d'utilisateur, mail et mot de passe")
     @PostMapping("/register")
     public String createUser(@Valid @RequestBody RegisterUserDTO authUser) throws FirebaseAuthException {
+        userServices.sendSSEUpdate();
         return authServices.createUser(authUser);
     }
 
@@ -53,7 +57,7 @@ public class AuthController {
      * @throws FirebaseAuthException
      */
     @Operation(summary = "Vérifie le jeton d'authentification et vrai si le token est valide sinon faux")
-    @GetMapping("/token")
+    @PostMapping("/token")
     public boolean verifyToken(
             @RequestHeader("Authorization") String authorizationHeader)
             throws FirebaseAuthException {
@@ -64,5 +68,4 @@ public class AuthController {
             return false; //"Jeton d'accès non fourni ou format incorrect.";
         }
     }
-
 }

@@ -9,5 +9,4 @@ public class RestPlanivacancesApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(RestPlanivacancesApplication.class, args);
 	}
-
 }
