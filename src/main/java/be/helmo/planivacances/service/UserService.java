@@ -44,7 +44,7 @@ public class UserService {
         return newEmitter;
     }
 
-    public void sendSSEUpdate() {
+    public void sendSSEUpdateToEveryone() {
         Iterator<SseEmitter> iterator = emitters.iterator();
         while (iterator.hasNext()) {
             SseEmitter emitter = iterator.next();
@@ -55,6 +55,18 @@ public class UserService {
             } catch (Exception e) {
                 emitter.complete();
                 iterator.remove();
+            }
+        }
+    }
+
+    public void sendSSEUpdateToSomeone(SseEmitter emitter) {
+        if(emitter != null) {
+            try {
+                int userCount = getNumberOfUsers();
+                emitter.send(SseEmitter.event().name("message").data(String.valueOf(userCount),
+                        MediaType.TEXT_EVENT_STREAM));
+            } catch (Exception e) {
+                emitter.complete();
             }
         }
     }

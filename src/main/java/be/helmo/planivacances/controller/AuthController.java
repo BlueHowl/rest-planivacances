@@ -32,8 +32,11 @@ public class AuthController {
     @Operation(summary = "Crée un utilisateur à partir d'un nom d'utilisateur, mail et mot de passe")
     @PostMapping("/register")
     public String createUser(@Valid @RequestBody RegisterUserDTO authUser) throws FirebaseAuthException {
-        userServices.sendSSEUpdate();
-        return authServices.createUser(authUser);
+        String token = authServices.createUser(authUser);
+        if(token != null) {
+            userServices.sendSSEUpdateToEveryone();
+        }
+        return token;
     }
 
     /**

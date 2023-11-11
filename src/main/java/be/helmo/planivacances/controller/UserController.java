@@ -16,10 +16,15 @@ public class UserController {
     @Autowired
     private UserService userServices;
 
-    @GetMapping("/number")
+    @GetMapping("/number/flux")
     public SseEmitter getNumberOfUsersStream() {
         SseEmitter sseEmitter = userServices.getNumberUsersStream();
-        userServices.sendSSEUpdate();
+        userServices.sendSSEUpdateToSomeone(sseEmitter);
         return sseEmitter;
+    }
+
+    @GetMapping("/number")
+    public void refreshNumberOfUsersStream() {
+        userServices.sendSSEUpdateToEveryone();
     }
 }
