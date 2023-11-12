@@ -49,7 +49,6 @@ public class AuthController {
     @PostMapping("/login")
     public String loginUser(@Valid @RequestBody LoginUserDTO authUser)
             throws FirebaseAuthException, GeneralSecurityException {
-
         return authServices.loginUser(authUser.getMail(), authUser.getPassword());
     }
 
@@ -64,11 +63,6 @@ public class AuthController {
     public boolean verifyToken(
             @RequestHeader("Authorization") String authorizationHeader)
             throws FirebaseAuthException {
-
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             return authServices.verifyToken(authorizationHeader) != null;
-        } else {
-            return false; //"Jeton d'accès non fourni ou format incorrect.";
-        }
     }
 }

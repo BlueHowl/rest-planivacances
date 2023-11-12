@@ -70,4 +70,10 @@ public class UserService {
             }
         }
     }
+
+    public boolean deleteUser(String uid) throws FirebaseAuthException {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        auth.deleteUser(uid);
+        return true;
+    }
 }

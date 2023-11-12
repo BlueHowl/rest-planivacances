@@ -39,16 +39,13 @@ public class GroupController {
 
             group.setOwner(uid);
             String gid = groupServices.createGroup(group);
-
             String pid = placeServices.createPlace(gid, place);
 
             group.setPlaceId(pid);
             groupServices.updateGroup(gid, group);
 
-
             return gid;
         }
-
         return null;
     }
 
@@ -99,7 +96,6 @@ public class GroupController {
     public String deleteGroup(@RequestHeader("Authorization") String authorizationHeader,
                               @PathVariable("gid") String gid) throws FirebaseAuthException {
         if (authServices.verifyToken(authorizationHeader) != null) {
-
             return groupServices.deleteGroup(gid);
         }
 

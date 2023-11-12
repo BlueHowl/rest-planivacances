@@ -1,10 +1,9 @@
 package be.helmo.planivacances.controller;
 
+import be.helmo.planivacances.service.AuthService;
+import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import be.helmo.planivacances.service.UserService;
@@ -15,6 +14,8 @@ import be.helmo.planivacances.service.UserService;
 public class UserController {
     @Autowired
     private UserService userServices;
+    @Autowired
+    private AuthService authServices;
 
     @GetMapping("/number/flux")
     public SseEmitter getNumberOfUsersStream() {
@@ -26,5 +27,17 @@ public class UserController {
     @GetMapping("/number")
     public void refreshNumberOfUsersStream() {
         userServices.sendSSEUpdateToEveryone();
+    }
+
+    @DeleteMapping("/{uid}")
+    public boolean deleteUser(@RequestHeader("Authorization") String authorizationHeader,
+                              @PathVariable("uid") String uid) throws FirebaseAuthException {
+        if(authServices.verifyToken(authorizationHeader) != null) {
+            if(userServices.deleteUser(uid)) {
+                userServices.sendSSEUpdateToEveryone();
+                return true;
+            }
+        }
+        return false;
     }
 }
