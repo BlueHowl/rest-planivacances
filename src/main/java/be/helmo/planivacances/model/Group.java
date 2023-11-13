@@ -11,7 +11,7 @@ import java.util.Date;
 public class Group {
     //private String uid;
     @NotNull
-    @Size(min = 4, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
+    @Size(min = 3, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
     private String groupName;
     private String description;
     @NotNull

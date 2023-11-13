@@ -19,7 +19,7 @@ public class FirebaseInitialization {
         try {
             Resource serviceAccountResource = new ClassPathResource("serviceAccountKey.json");
 
-            FirebaseOptions options = new FirebaseOptions.Builder()
+            FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccountResource.getInputStream()))
                     .build();
 

@@ -17,13 +17,13 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class PlaceService {
 
-    private static final String COLLECTION_NAME = "groups";
+    private static final String BASE_COLLECTION_NAME = "groups";
     private static final String PLACE_COLLECTION_NAME = "places";
 
     public String createPlace(String gid, Place place) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        DocumentReference dr = fdb.collection(COLLECTION_NAME)
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
                 .document();
@@ -39,7 +39,7 @@ public class PlaceService {
     public Place getPlace(String gid, String pid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        DocumentReference dr = fdb.collection(COLLECTION_NAME)
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
                 .document(pid);
@@ -53,7 +53,7 @@ public class PlaceService {
     public List<Place> getGroupPlaces(String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        Iterable<DocumentReference> dr = fdb.collection(COLLECTION_NAME)
+        Iterable<DocumentReference> dr = fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
                 .listDocuments();
@@ -76,7 +76,7 @@ public class PlaceService {
     public String deletePlace(String gid, String pid) {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME)
+        ApiFuture<WriteResult> cApiFuture = fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
                 .document(pid).delete();
