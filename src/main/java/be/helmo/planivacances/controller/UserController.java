@@ -1,5 +1,6 @@
 package be.helmo.planivacances.controller;
 
+import be.helmo.planivacances.model.dto.FormContactDTO;
 import be.helmo.planivacances.service.AuthService;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,11 @@ public class UserController {
     @GetMapping("/number")
     public void refreshNumberOfUsersStream() {
         userServices.sendSSEUpdateToEveryone();
+    }
+
+    @PostMapping("admin/message")
+    public void contactAdmin(@RequestBody FormContactDTO form) {
+        userServices.contactAdmin(form);
     }
 
     @DeleteMapping("/{uid}")

@@ -1,21 +1,29 @@
 package be.helmo.planivacances.service;
 
+import be.helmo.planivacances.model.ConfigurationSmtp;
+import be.helmo.planivacances.model.dto.FormContactDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.ListUsersPage;
 import com.google.firebase.auth.UserRecord;
 
+import org.apache.commons.mail.DefaultAuthenticator;
+import org.apache.commons.mail.EmailException;
+import org.apache.commons.mail.HtmlEmail;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 public class UserService {
     private final Set<SseEmitter> emitters = new HashSet<SseEmitter>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Récupère le nombre d'utilisateurs de PlaniVacances
@@ -75,5 +83,54 @@ public class UserService {
         FirebaseAuth auth = FirebaseAuth.getInstance();
         auth.deleteUser(uid);
         return true;
+    }
+
+    private List<UserRecord> getAdminUsers() throws Exception {
+        List<UserRecord> adminUsers = new ArrayList<>();
+
+        ListUsersPage page = FirebaseAuth.getInstance().listUsers(null);
+        while (page != null) {
+            for (UserRecord user : page.iterateAll()) {
+                if (user.getCustomClaims() != null && user.getCustomClaims().containsKey("admin")
+                        && (boolean) user.getCustomClaims().get("admin")) {
+                    adminUsers.add(user);
+                }
+            }
+            page = page.hasNextPage() ? page.getNextPage() : null;
+        }
+
+        return adminUsers;
+    }
+
+    public void contactAdmin(FormContactDTO form) {
+        try {
+            Resource resource = new ClassPathResource("smtp.json");
+            ConfigurationSmtp configuration = objectMapper.readValue(
+                    resource.getInputStream(),
+                    ConfigurationSmtp.class
+            );
+
+            HtmlEmail email = new HtmlEmail();
+            email.setHostName(configuration.getSmtpHost());
+            email.setSmtpPort(configuration.getSmtpPort());
+            email.setAuthenticator(new DefaultAuthenticator(configuration.getSmtpUsername(), configuration.getSmtpPassword()));
+            email.setStartTLSEnabled(true);
+            email.setFrom(configuration.getSmtpUsername());
+            email.setSubject(form.getSubject());
+            email.setMsg(String.format("Message de : %s\n%s",form.getEmail(),form.getMessage()));
+
+            for(UserRecord user : getAdminUsers()) {
+                email.addTo(user.getEmail());
+            }
+
+            email.send();
+            System.out.println("E-mails envoyés avec succès !");
+        } catch (EmailException | IOException e) {
+            e.printStackTrace();
+            System.err.println("Erreur lors de l'envoi des e-mails : " + e.getMessage());
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            System.err.println("Erreur : " + exception.getMessage());
+        }
     }
 }
