@@ -35,3 +35,4 @@ build/
 
 ### Configs ###
 resources/*.json
+smtp.json
