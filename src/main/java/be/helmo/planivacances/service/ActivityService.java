@@ -1,6 +1,8 @@
 package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.Activity;
+import be.helmo.planivacances.model.Place;
+import be.helmo.planivacances.model.dto.ActivityDTO;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
@@ -8,11 +10,12 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.cloud.FirestoreClient;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
+import net.fortuna.ical4j.model.Dur;
 import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.property.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,7 +27,10 @@ public class ActivityService {
     private static final String BASE_COLLECTION_NAME = "groups";
     private static final String ACTIVITY_COLLECTION_NAME = "activities";
 
-    public Calendar exportCalendar(String gid) throws ExecutionException, InterruptedException {
+    @Autowired
+    private PlaceService placeService;
+
+    public String exportCalendar(String gid) throws ExecutionException, InterruptedException {
         Calendar calendar = new Calendar();
         calendar.getProperties().add(new ProdId("-//Planivacances-{groupName}//iCal4j 3.0.26//FR"));
         calendar.getProperties().add(Version.VERSION_2_0);
@@ -32,15 +38,20 @@ public class ActivityService {
         calendar.getProperties().add(Method.PUBLISH);
 
         for(Activity a : getGroupActivities(gid)) {
-            VEvent event = new VEvent(new DateTime(a.getStartDate()), String.format("%s\n%s", a.getTitle(), a.getDescription()));
+            VEvent event = new VEvent(new DateTime(a.getStartDate()), a.getTitle());
+            event.getProperties().add(new Summary(a.getDescription()));
             event.getProperties().add(new Location(a.getPlaceAddress()));
-            event.getDuration().setDuration(Duration.ofMillis(a.getMsDuration()));
+
+            Dur dur = new Dur(0, 0, 0, a.getDuration());
+            event.getProperties().add(new Duration(dur));
+
+            DateTime endDateTime = new DateTime(a.getStartDate().getTime() + a.getDuration());
+            event.getProperties().add(new DtEnd(endDateTime));
+
             calendar.getComponents().add(event);
         }
 
-        System.out.println(calendar);
-
-        return calendar;
+        return calendar.toString();
     }
 
     public List<Activity> getGroupActivities(String gid) throws ExecutionException, InterruptedException {
@@ -58,7 +69,19 @@ public class ActivityService {
             ApiFuture<DocumentSnapshot> future = tempDR.get();
             DocumentSnapshot document = future.get();
 
-            activityList.add(document.toObject(Activity.class));
+            ActivityDTO activityDTO = document.toObject(ActivityDTO.class);
+
+            Place place = placeService.getPlace(gid, activityDTO.getPlaceId());
+
+            if(place != null) {
+                activityList.add(
+                        new Activity(activityDTO.getTitle(),
+                                activityDTO.getDescription(),
+                                activityDTO.getStartDate(),
+                                activityDTO.getDuration(),
+                                place)
+                );
+            }
         }
 
         return activityList;
