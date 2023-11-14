@@ -19,10 +19,12 @@ import java.util.List;
 public class AuthorizationFilter extends OncePerRequestFilter {
 
     private final List<String> excludedEndpoints = Arrays.asList(
-            "/api/auth/*",
-            "api/users/number",
-            "api/users/number/flux",
-            "api/users/admin/message"
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/token",
+            "/api/users/number",
+            "/api/users/number/flux",
+            "/api/users/admin/message"
             // Add more exclusion patterns as needed
     );
 
