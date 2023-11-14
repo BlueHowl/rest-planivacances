@@ -1,4 +1,4 @@
-package be.helmo.planivacances;
+package be.helmo.planivacances.configuration;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;

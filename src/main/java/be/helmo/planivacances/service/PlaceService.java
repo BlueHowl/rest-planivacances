@@ -76,10 +76,11 @@ public class PlaceService {
     public String deletePlace(String gid, String pid) {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(BASE_COLLECTION_NAME)
+        fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
                 .document(pid).delete();
+
         return "\"Le lieu à bien été supprimé\"";
     }
 }

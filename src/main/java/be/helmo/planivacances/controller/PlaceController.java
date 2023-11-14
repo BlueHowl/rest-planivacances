@@ -3,9 +3,10 @@ package be.helmo.planivacances.controller;
 import be.helmo.planivacances.model.Place;
 import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.PlaceService;
-import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -17,64 +18,53 @@ public class PlaceController {
     @Autowired
     private PlaceService placeServices;
 
-    @Autowired
-    private AuthService authServices;
-
     @PostMapping("/{gid}")
     public String createPlace(
-            @RequestHeader("Authorization") String authorizationHeader,
             @RequestBody Place place,
             @PathVariable("gid") String gid)
-            throws ExecutionException, InterruptedException, FirebaseAuthException {
+            throws ResponseStatusException {
 
-        if (authServices.verifyToken(authorizationHeader) != null) {
-
+        try {
             return placeServices.createPlace(gid, place);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la creation du lieu");
         }
 
-        return "\"Token invalide\"";
     }
 
     @GetMapping("/{gid}/{pid}")
     public Place getGroupPlace(
-            @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable("gid") String gid,
             @PathVariable("pid") String pid)
-            throws ExecutionException, InterruptedException, FirebaseAuthException {
+            throws ResponseStatusException {
 
-        if (authServices.verifyToken(authorizationHeader) != null) {
-
+        try {
             return placeServices.getPlace(gid, pid);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la recuperation du lieu de vacances");
         }
 
-        return null;
     }
 
     @GetMapping("/list/{gid}")
     public List<Place> getPlaces(
-            @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable("gid") String gid)
-            throws ExecutionException, InterruptedException, FirebaseAuthException {
+            throws ResponseStatusException {
 
-        if (authServices.verifyToken(authorizationHeader) != null) {
-
+        try {
             return placeServices.getGroupPlaces(gid);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la recuperation des lieu");
         }
 
-        return null;
     }
 
     @DeleteMapping("/{gid}/{pid}")
     public String deletePlace(
-            @RequestHeader("Authorization") String authorizationHeader,
             @PathVariable("gid") String gid,
-            @PathVariable("pid") String pid) throws FirebaseAuthException {
-
-        if (authServices.verifyToken(authorizationHeader) != null) {
+            @PathVariable("pid") String pid) throws ResponseStatusException {
 
             return placeServices.deletePlace(gid, pid);
-        }
 
-        return null;
     }
 }

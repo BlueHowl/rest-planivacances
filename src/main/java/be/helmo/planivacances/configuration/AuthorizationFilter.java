@@ -1,0 +1,63 @@
+package be.helmo.planivacances.configuration;
+
+import be.helmo.planivacances.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ResponseStatusException;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+@Component
+public class AuthorizationFilter extends OncePerRequestFilter {
+
+    private final List<String> excludedEndpoints = Arrays.asList(
+            "/api/auth/*",
+            "api/users/number",
+            "api/users/number/flux",
+            "api/users/admin/message"
+            // Add more exclusion patterns as needed
+    );
+
+    @Autowired
+    private AuthService authServices;
+
+    @Override
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+        // Check if the request URI matches any excluded endpoint pattern
+        if (excludedEndpoints.stream().anyMatch(request.getRequestURI()::matches)) {
+            // Continue with the filter chain for excluded requests
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Check if the Authorization header is present
+        String authorizationHeader = request.getHeader("Authorization");
+
+        if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+            // Authorization header is not present, return 401 Unauthorized
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("Unauthorized: Token non présent");
+            return;
+        } else if(authServices.verifyToken(authorizationHeader) == null) {
+            //Authorization header token not valid 401 Unauthorized
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.getWriter().write("Unauthorized: Token invalide");
+            return;
+        }
+
+        // Continue with the filter chain for all other requests
+        filterChain.doFilter(request, response);
+    }
+}

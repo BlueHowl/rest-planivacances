@@ -68,7 +68,7 @@ public class GroupService {
 
     public String deleteGroup(String gid) {
         Firestore fdb = FirestoreClient.getFirestore();
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(gid).delete();
+        fdb.collection(COLLECTION_NAME).document(gid).delete();
         return String.format("\"Le groupe %s a bien été supprimé\"", gid);
     }
 

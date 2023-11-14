@@ -61,11 +61,17 @@ public class AuthService {
      * @return (String) si token valide uid sinon null
      * @throws FirebaseAuthException
      */
-    public String verifyToken(String authorizationHeader) throws FirebaseAuthException {
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            String token = authorizationHeader.substring(7); // Supprime "Bearer " du début
-            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
-            return decodedToken.getUid();
+    public String verifyToken(String authorizationHeader) {
+        try {
+
+            if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+                String token = authorizationHeader.substring(7); // Supprime "Bearer " du début
+                FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(token);
+                return decodedToken.getUid();
+            }
+
+        } catch (FirebaseAuthException e) {
+            return null;
         }
 
         return null;

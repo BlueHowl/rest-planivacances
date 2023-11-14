@@ -2,9 +2,10 @@ package be.helmo.planivacances.controller;
 
 import be.helmo.planivacances.service.ActivityService;
 import be.helmo.planivacances.service.AuthService;
-import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.ExecutionException;
 
@@ -15,25 +16,22 @@ public class ActivityController {
     @Autowired
     private ActivityService activityServices;
 
-    @Autowired
-    private AuthService authServices;
-
     @PostMapping
-    public String createActivity(
-            @RequestHeader("Authorization") String authorizationHeader) throws ExecutionException, InterruptedException, FirebaseAuthException {
+    public String createActivity() {
 
         return null;
     }
 
     @GetMapping("calendar/{gid}")
-    public String exportCalendar(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable("gid") String gid) throws FirebaseAuthException, ExecutionException, InterruptedException {
+    public String exportCalendar(@PathVariable("gid") String gid)
+            throws ResponseStatusException {
 
-        if(authServices.verifyToken(authorizationHeader) != null) {
+        try {
             return activityServices.exportCalendar(gid);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de l'exportation du calendrier");
         }
 
-        return null;
     }
 }

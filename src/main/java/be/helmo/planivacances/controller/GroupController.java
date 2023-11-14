@@ -6,9 +6,10 @@ import be.helmo.planivacances.model.dto.GroupAndPlaceDTO;
 import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.GroupService;
 import be.helmo.planivacances.service.PlaceService;
-import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -29,55 +30,57 @@ public class GroupController {
     @PostMapping
     public String createGroup(
             @RequestHeader("Authorization") String authorizationHeader,
-            @RequestBody GroupAndPlaceDTO gp) throws ExecutionException, InterruptedException, FirebaseAuthException {
+            @RequestBody GroupAndPlaceDTO gp) throws ResponseStatusException {
 
         String uid = authServices.verifyToken(authorizationHeader);
 
-        if(uid != null) {
-            Group group = gp.getGroup();
-            Place place = gp.getPlace();
+        try {
+            if (uid != null) {
+                Group group = gp.getGroup();
+                Place place = gp.getPlace();
 
-            group.setOwner(uid);
-            String gid = groupServices.createGroup(group);
-            String pid = placeServices.createPlace(gid, place);
+                group.setOwner(uid);
+                String gid = groupServices.createGroup(group);
+                String pid = placeServices.createPlace(gid, place);
 
-            group.setPlaceId(pid);
-            groupServices.updateGroup(gid, group);
+                group.setPlaceId(pid);
+                groupServices.updateGroup(gid, group);
 
-            return gid;
+                return gid;
+            } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la creation du groupe");
         }
-        return null;
+
     }
 
     @GetMapping("/{gid}")
-    public Group getGroup(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @PathVariable("gid") String gid) throws ExecutionException, InterruptedException, FirebaseAuthException {
-        if (authServices.verifyToken(authorizationHeader) != null) {
-
-            return groupServices.getGroup(gid);
-        }
-
-        return null;
+    public Group getGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
+            try {
+                return groupServices.getGroup(gid);
+            } catch (ExecutionException | InterruptedException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Erreur lors de la récupération du groupe");
+            }
     }
 
     @GetMapping("/list")
-    public List<Group> getGroups(@RequestHeader("Authorization") String authorizationHeader) throws ExecutionException, InterruptedException, FirebaseAuthException {
-        if (authServices.verifyToken(authorizationHeader) != null) {
+    public List<Group> getGroups() throws ResponseStatusException {
+        try {
             return groupServices.getGroups();
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la recuperation des groupes");
         }
 
-        return null;
     }
 
     //!! Avec firebase l'update se fait de la même maniére que le create, il se base sur l'id du document donc si il
     //existe il est update snn il est créé
     @PutMapping("/{gid}")
-    public String updateGroup(@RequestHeader("Authorization") String authorizationHeader,
-                              @RequestBody Group group,
-                              @PathVariable("gid") String gid) throws ExecutionException, InterruptedException, FirebaseAuthException {
-        if (authServices.verifyToken(authorizationHeader) != null) {
+    public String updateGroup(@RequestBody Group group,
+                              @PathVariable("gid") String gid) throws ResponseStatusException {
 
+        try {
             /*Group group = new Group(groupDTO.getGroupName(),
                     groupDTO.getDescription(),
                     groupDTO.getStartDate(),
@@ -87,18 +90,14 @@ public class GroupController {
                     groupDTO.getOwner());*/
 
             return groupServices.updateGroup(gid, group);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la mise à jour du groupe");
         }
 
-        return null;
     }
 
     @DeleteMapping("/{gid}")
-    public String deleteGroup(@RequestHeader("Authorization") String authorizationHeader,
-                              @PathVariable("gid") String gid) throws FirebaseAuthException {
-        if (authServices.verifyToken(authorizationHeader) != null) {
-            return groupServices.deleteGroup(gid);
-        }
-
-        return null;
+    public String deleteGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
+        return groupServices.deleteGroup(gid);
     }
 }

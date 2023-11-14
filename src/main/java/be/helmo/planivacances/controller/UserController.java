@@ -4,7 +4,9 @@ import be.helmo.planivacances.model.dto.FormContactDTO;
 import be.helmo.planivacances.service.AuthService;
 import com.google.firebase.auth.FirebaseAuthException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import be.helmo.planivacances.service.UserService;
@@ -35,15 +37,25 @@ public class UserController {
         userServices.contactAdmin(form);
     }
 
-    @DeleteMapping("/{uid}")
-    public boolean deleteUser(@RequestHeader("Authorization") String authorizationHeader,
-                              @PathVariable("uid") String uid) throws FirebaseAuthException {
-        if(authServices.verifyToken(authorizationHeader) != null) {
-            if(userServices.deleteUser(uid)) {
-                userServices.sendSSEUpdateToEveryone();
-                return true;
-            }
+    @DeleteMapping
+    public boolean deleteSelfUser(@RequestHeader("Authorization") String authorizationHeader) throws ResponseStatusException {
+
+        String uid = authServices.verifyToken(authorizationHeader);
+
+        try {
+
+            if (uid != null) {
+                if (userServices.deleteUser(uid)) {
+                    userServices.sendSSEUpdateToEveryone();
+                    return true;
+                }
+            } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
+
+        } catch (FirebaseAuthException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la suppression de l'utilisateur");
         }
+
         return false;
     }
 }
