@@ -1,9 +1,12 @@
 package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.Group;
+import be.helmo.planivacances.model.Place;
+import be.helmo.planivacances.model.dto.GroupDTO;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,11 +19,16 @@ public class GroupService {
 
     private static final String COLLECTION_NAME = "groups";
 
+    @Autowired
+    private PlaceService placeServices;
+
     public String createGroup(Group group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         DocumentReference dr = fdb.collection(COLLECTION_NAME).document();
 
         ApiFuture<WriteResult> result = dr.set(group);
+
+        //todo ajouter le place directement ici ?
 
         // Block until the document is written (optional)
         result.get();
@@ -38,19 +46,27 @@ public class GroupService {
         return document.exists() ? document.toObject(Group.class) : null;
     }
 
-    public List<Group> getGroups() throws ExecutionException, InterruptedException {
+    public List<GroupDTO> getGroups() throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         Iterable<DocumentReference> dr = fdb.collection(COLLECTION_NAME).listDocuments();
         Iterator<DocumentReference> it = dr.iterator();
 
-        List<Group> groupList = new ArrayList<>();
+        List<GroupDTO> groupList = new ArrayList<>();
 
         while(it.hasNext()) {
             DocumentReference tempDR = it.next();
             ApiFuture<DocumentSnapshot> future = tempDR.get();
             DocumentSnapshot document = future.get();
 
-            groupList.add(document.toObject(Group.class));
+            String gid = document.getId();
+            Group g = document.toObject(Group.class);
+
+            Place p = placeServices.getPlace(gid, g.getPlaceId());
+
+            GroupDTO gDto = new GroupDTO(g, gid);
+            gDto.setPlace(p);
+
+            groupList.add(gDto);
         }
 
         return groupList;

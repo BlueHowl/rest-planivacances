@@ -3,6 +3,7 @@ package be.helmo.planivacances.controller;
 import be.helmo.planivacances.model.Group;
 import be.helmo.planivacances.model.Place;
 import be.helmo.planivacances.model.dto.GroupAndPlaceDTO;
+import be.helmo.planivacances.model.dto.GroupDTO;
 import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.GroupService;
 import be.helmo.planivacances.service.PlaceService;
@@ -62,9 +63,10 @@ public class GroupController {
             }
     }
 
-    @GetMapping("/list")
-    public List<Group> getGroups() throws ResponseStatusException {
+    @GetMapping("{uid}/list")
+    public List<GroupDTO> getUserGroups(@PathVariable("uid") String uid) throws ResponseStatusException {
         try {
+            //todo use uid
             return groupServices.getGroups();
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la recuperation des groupes");

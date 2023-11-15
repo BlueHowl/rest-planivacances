@@ -1,5 +1,6 @@
 package be.helmo.planivacances.model;
 
+import com.google.cloud.firestore.annotation.Exclude;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -19,9 +20,10 @@ public class Place {
         return address;
     }
 
+    /*@Exclude
     public String getLatLong() {
         return String.format("%f,%f", lat, lon);
-    }
+    }*/
 
     public double getLat() {
         return lat;
@@ -45,4 +47,5 @@ public class Place {
     public void setLon(float lon) {
         this.lon = lon;
     }
+
 }

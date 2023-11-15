@@ -1,5 +1,7 @@
-package be.helmo.planivacances.model;
+package be.helmo.planivacances.model.dto;
 
+import be.helmo.planivacances.model.Group;
+import be.helmo.planivacances.model.Place;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
@@ -8,8 +10,9 @@ import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Data
-public class Group {
-    //private String uid;
+public class GroupDTO {
+    @NotNull
+    private String gid;
     @NotNull
     @Size(min = 3, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
     private String groupName;
@@ -21,33 +24,44 @@ public class Group {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date endDate;
     @NotNull
-    private String placeId;
+    private Place place;
     private boolean isPublished;
     @NotNull
     private String owner;
 
-    public Group() {}
-
-    public Group(String groupName,
+    public GroupDTO(String gid,
+                 String groupName,
                  String description,
                  Date startDate,
                  Date endDate,
-                 String placeId,
+                 Place place,
                  boolean isPublished,
                  String owner) {
+        this.gid = gid;
         this.groupName = groupName;
         this.description = description;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.placeId = placeId;
+        this.place = place;
         this.isPublished = isPublished;
         this.owner = owner;
     }
 
+    public GroupDTO(Group g, String gid) {
+        this.gid = gid;
+        this.groupName = g.getGroupName();
+        this.description = g.getDescription();
+        this.startDate = g.getStartDate();
+        this.endDate = g.getEndDate();
+        this.place = null;
+        this.isPublished = g.isPublished();
+        this.owner = g.getOwner();
+    }
+
     //getters
-    /*public String getUid() {
-        return uid;
-    }*/
+    public String getGid() {
+        return gid;
+    }
 
     public String getGroupName() {
         return groupName;
@@ -65,8 +79,8 @@ public class Group {
         return endDate;
     }
 
-    public String getPlaceId() {
-        return placeId;
+    public Place getPlace() {
+        return place;
     }
 
     public boolean isPublished() {
@@ -79,9 +93,9 @@ public class Group {
 
 
     //setters
-    /*public void setUid(String uid) {
-        this.uid = uid;
-    }*/
+    public void setGid(String gid) {
+        this.gid = gid;
+    }
 
     public void setGroupName(String groupName) {
         this.groupName = groupName;
@@ -99,8 +113,8 @@ public class Group {
         this.endDate = endDate;
     }
 
-    public void setPlaceId(String placeId) {
-        this.placeId = placeId;
+    public void setPlace(Place place) {
+        this.place = place;
     }
 
     public void setPublished(boolean published) {
@@ -111,3 +125,4 @@ public class Group {
         this.owner = owner;
     }
 }
+
