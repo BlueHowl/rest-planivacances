@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -44,15 +43,17 @@ public class AuthorizationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Check if the Authorization header is present
         String authorizationHeader = request.getHeader("Authorization");
+        String uid = null;
+
+        System.out.println(authorizationHeader);
 
         if (authorizationHeader == null || authorizationHeader.isEmpty()) {
             // Authorization header is not present, return 401 Unauthorized
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write("Unauthorized: Token non présent");
             return;
-        } else if(authServices.verifyToken(authorizationHeader) == null) {
+        } else if((uid = authServices.verifyToken(authorizationHeader)) == null) {
             //Authorization header token not valid 401 Unauthorized
             response.setStatus(HttpStatus.UNAUTHORIZED.value());
             response.getWriter().write("Unauthorized: Token invalide");
@@ -61,5 +62,7 @@ public class AuthorizationFilter extends OncePerRequestFilter {
 
         // Continue with the filter chain for all other requests
         filterChain.doFilter(request, response);
+        // Stocker l'UID dans l'objet HttpServletRequest pour qu'il soit accessible dans le controller
+        request.setAttribute("uid",uid);
     }
 }

@@ -72,11 +72,6 @@ public class AuthController {
     @PostMapping("/token")
     public boolean verifyToken(
             @RequestHeader("Authorization") String authorizationHeader) {
-
-        /*if(authServices.verifyToken(authorizationHeader) != null) {
-            return true;
-        } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");*/
-
         return authServices.verifyToken(authorizationHeader) != null;
     }
 }

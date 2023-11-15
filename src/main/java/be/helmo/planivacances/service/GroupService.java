@@ -2,10 +2,7 @@ package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.Group;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
@@ -70,6 +67,27 @@ public class GroupService {
         Firestore fdb = FirestoreClient.getFirestore();
         fdb.collection(COLLECTION_NAME).document(gid).delete();
         return String.format("\"Le groupe %s a bien été supprimé\"", gid);
+    }
+
+    public boolean isInGroup(String uid, String gid) {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference userRef = fdb.collection("users").document(uid);
+
+        try {
+            DocumentSnapshot document = userRef.get().get();
+
+            if (document.exists()) {
+                if (document.contains("groups")) {
+                    List<String> groups = (List<String>) document.get("groups");
+                    if (groups != null && groups.contains(gid)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            return false;
+        }
+        return false;
     }
 
 }

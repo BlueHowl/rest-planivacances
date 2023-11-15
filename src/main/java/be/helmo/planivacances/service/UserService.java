@@ -1,6 +1,7 @@
 package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.ConfigurationSmtp;
+import be.helmo.planivacances.model.User;
 import be.helmo.planivacances.model.dto.FormContactDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.auth.FirebaseAuth;
@@ -132,5 +133,10 @@ public class UserService {
             exception.printStackTrace();
             System.err.println("Erreur : " + exception.getMessage());
         }
+    }
+
+    public User getUser(String uid) throws FirebaseAuthException {
+        UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
+        return new User(userRecord.getUid(),userRecord.getEmail(),userRecord.getDisplayName());
     }
 }

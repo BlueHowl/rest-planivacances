@@ -1,5 +1,6 @@
 package be.helmo.planivacances.controller;
 
+import be.helmo.planivacances.model.User;
 import be.helmo.planivacances.model.dto.FormContactDTO;
 import be.helmo.planivacances.service.AuthService;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -11,14 +12,25 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import be.helmo.planivacances.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*") // TODO only for dev to allow cors
 public class UserController {
     @Autowired
     private UserService userServices;
-    @Autowired
-    private AuthService authServices;
+
+    @PostMapping("/")
+    public User getUserDetails(HttpServletRequest request) {
+        String uid = (String) request.getAttribute("uid");
+        try {
+            return userServices.getUser(uid);
+        } catch (FirebaseAuthException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors du chargement de l'utilisateur");
+        }
+    }
 
     @GetMapping("/number/flux")
     public SseEmitter getNumberOfUsersStream() {
@@ -38,10 +50,9 @@ public class UserController {
     }
 
     @DeleteMapping
-    public boolean deleteSelfUser(@RequestHeader("Authorization") String authorizationHeader) throws ResponseStatusException {
+    public boolean deleteSelfUser(HttpServletRequest request) throws ResponseStatusException {
 
-        String uid = authServices.verifyToken(authorizationHeader);
-
+        String uid = (String) request.getAttribute("uid");
         try {
 
             if (uid != null) {

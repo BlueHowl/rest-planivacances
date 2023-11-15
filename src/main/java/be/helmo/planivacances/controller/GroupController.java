@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -24,15 +25,12 @@ public class GroupController {
     @Autowired
     private PlaceService placeServices;
 
-    @Autowired
-    private AuthService authServices;
-
     @PostMapping
     public String createGroup(
-            @RequestHeader("Authorization") String authorizationHeader,
+            HttpServletRequest request,
             @RequestBody GroupAndPlaceDTO gp) throws ResponseStatusException {
 
-        String uid = authServices.verifyToken(authorizationHeader);
+        String uid = (String) request.getAttribute("uid");
 
         try {
             if (uid != null) {
