@@ -45,7 +45,7 @@ public class AuthService {
         //pas d'autre solution que de checker 1 par 1 tous les utilisateurs
         //snn obligé de passer par firebase en frontend
         for (ExportedUserRecord response : page.iterateAll()) {
-            if(response.getEmail().equals(mail)) {
+            if(response.getEmail() != null && response.getEmail().equals(mail)) {
                 if(fbs.check(password, response.getPasswordHash(), response.getPasswordSalt())) {
                     return auth.createCustomToken(response.getUid());
                 }

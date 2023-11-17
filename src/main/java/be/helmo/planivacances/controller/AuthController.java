@@ -16,7 +16,6 @@ import javax.validation.Valid;
 import java.security.GeneralSecurityException;
 
 @RestController
-@CrossOrigin(origins = "*",allowedHeaders = "*") //TODO only for dev to allow cors
 @RequestMapping("/api/auth")
 public class AuthController {
 

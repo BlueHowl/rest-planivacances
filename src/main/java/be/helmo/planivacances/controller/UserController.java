@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // TODO only for dev to allow cors
 public class UserController {
     @Autowired
     private UserService userServices;

@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -15,7 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class AuthorizationFilter extends OncePerRequestFilter {
+public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcConfigurer {
 
     private final List<String> excludedEndpoints = Arrays.asList(
             "/api/auth/login",
