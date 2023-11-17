@@ -52,7 +52,7 @@ public class AuthService {
             }
         }
 
-        return "\"Adresse mail ou mot de passe incorrect\"";
+        return null;
     }
 
     /**

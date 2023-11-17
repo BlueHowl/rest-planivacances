@@ -24,7 +24,8 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             "/api/auth/token",
             "/api/users/number",
             "/api/users/number/flux",
-            "/api/users/admin/message"
+            "/api/users/admin/message",
+            "/api/chat/*"
             // Add more exclusion patterns as needed
     );
 
@@ -47,7 +48,7 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         String authorizationHeader = request.getHeader("Authorization");
         String uid = null;
 
-        System.out.println(authorizationHeader);
+        System.out.println("token : " + authorizationHeader);
 
         if (authorizationHeader == null || authorizationHeader.isEmpty()) {
             // Authorization header is not present, return 401 Unauthorized
@@ -60,10 +61,12 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             response.getWriter().write("Unauthorized: Token invalide");
             return;
         }
-
+        System.out.println("uid : " + uid);
         // Continue with the filter chain for all other requests
+
+        request.setAttribute("uid",uid);
+
         filterChain.doFilter(request, response);
         // Stocker l'UID dans l'objet HttpServletRequest pour qu'il soit accessible dans le controller
-        request.setAttribute("uid",uid);
     }
 }

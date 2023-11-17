@@ -1,7 +1,5 @@
 package be.helmo.planivacances.service;
 
-import be.helmo.planivacances.model.Group;
-import be.helmo.planivacances.model.Place;
 import be.helmo.planivacances.model.dto.GroupDTO;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
@@ -19,31 +17,25 @@ public class GroupService {
 
     private static final String COLLECTION_NAME = "groups";
 
-    @Autowired
-    private PlaceService placeServices;
-
-    public String createGroup(Group group) throws ExecutionException, InterruptedException {
+    public String createGroup(GroupDTO group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         DocumentReference dr = fdb.collection(COLLECTION_NAME).document();
 
         ApiFuture<WriteResult> result = dr.set(group);
 
-        //todo ajouter le place directement ici ?
-
-        // Block until the document is written (optional)
         result.get();
 
         return dr.getId();
     }
 
-    public Group getGroup(String gid) throws ExecutionException, InterruptedException {
+    public GroupDTO getGroup(String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         DocumentReference dr = fdb.collection(COLLECTION_NAME).document(gid);
         ApiFuture<DocumentSnapshot> future = dr.get();
 
         DocumentSnapshot document = future.get();
 
-        return document.exists() ? document.toObject(Group.class) : null;
+        return document.exists() ? document.toObject(GroupDTO.class) : null;
     }
 
     public List<GroupDTO> getGroups() throws ExecutionException, InterruptedException {
@@ -58,21 +50,24 @@ public class GroupService {
             ApiFuture<DocumentSnapshot> future = tempDR.get();
             DocumentSnapshot document = future.get();
 
+            GroupDTO group = document.toObject(GroupDTO.class);
             String gid = document.getId();
-            Group g = document.toObject(Group.class);
+            group.setGid(gid);
+            /*Group g = document.toObject(Group.class);
 
             Place p = placeServices.getPlace(gid, g.getPlaceId());
 
             GroupDTO gDto = new GroupDTO(g, gid);
             gDto.setPlace(p);
 
-            groupList.add(gDto);
+            groupList.add(gDto);*/
+            groupList.add(document.exists() ? group : null);
         }
 
         return groupList;
     }
 
-    public String updateGroup(String gid, Group group) throws ExecutionException, InterruptedException {
+    public String updateGroup(String gid, GroupDTO group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(gid).set(group);
 

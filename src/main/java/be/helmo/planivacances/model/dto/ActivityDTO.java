@@ -3,12 +3,13 @@ package be.helmo.planivacances.model.dto;
 import be.helmo.planivacances.model.Place;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
 public class ActivityDTO {
-    @NotNull
+    @NotBlank
     @Size(min = 3, message = "Le nom de l'activité doit faire minimum 3 caractères")
     private String title;
     private String description;
@@ -17,7 +18,7 @@ public class ActivityDTO {
     private Date startDate;
     @NotNull
     private int duration;
-    @NotNull
+    @NotBlank
     private String placeId;
 
 

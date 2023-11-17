@@ -3,14 +3,14 @@ package be.helmo.planivacances.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Data
 public class Group {
-    //private String uid;
-    @NotNull
+    @NotBlank
     @Size(min = 3, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
     private String groupName;
     private String description;
@@ -20,9 +20,11 @@ public class Group {
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date endDate;
+    @NotBlank
     @NotNull
     private String placeId;
     private boolean isPublished;
+    @NotBlank
     @NotNull
     private String owner;
 

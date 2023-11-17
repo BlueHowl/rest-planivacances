@@ -1,29 +1,55 @@
 package be.helmo.planivacances.model;
 
-import com.google.cloud.firestore.annotation.Exclude;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Data
 public class Place {
-    @NotNull
-    private String address; //Label ? permet de limiter les appels geocoding
-    @NotNull
+    @NotBlank
+    private String country;
+    @NotBlank
+    private String city;
+    @NotBlank
+    private String street;
+    @NotBlank
+    @Pattern(regexp = "^\\d+$", message = "Le numéro de boite est invalide")
+    private String number;
+    @NotBlank
+    @Size(min = 4, message = "Le code postal doit comprendre au moins 4 chiffres")
+    @Pattern(regexp = "^\\d{4,}$", message = "Le code postal est invalide")
+    private String postalCode;
+
+    @NotBlank
     private double lat;
-    @NotNull
+    @NotBlank
     private double lon;
+
 
     //getters
 
-    public String getAddress() {
-        return address;
+
+    public String getCountry() {
+        return country;
     }
 
-    /*@Exclude
-    public String getLatLong() {
-        return String.format("%f,%f", lat, lon);
-    }*/
+    public String getCity() {
+        return city;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public String getPostalCode() {
+        return postalCode;
+    }
 
     public double getLat() {
         return lat;
@@ -33,11 +59,32 @@ public class Place {
         return lon;
     }
 
+    public String getAddress() {
+        return String.format("%s, %s, %s %s, %s", getStreet(), getNumber(), getCity(), getPostalCode(), getCountry());
+    }
+
 
     //setters
 
-    public void setAddress(String address) {
-        this.address = address;
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
+
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
     }
 
     public void setLat(float lat) {

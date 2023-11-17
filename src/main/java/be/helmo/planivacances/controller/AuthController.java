@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.security.GeneralSecurityException;
 
@@ -32,13 +33,17 @@ public class AuthController {
      */
     @Operation(summary = "Crée un utilisateur à partir d'un nom d'utilisateur, mail et mot de passe")
     @PostMapping("/register")
-    public String createUser(@Valid @RequestBody RegisterUserDTO authUser) throws ResponseStatusException {
+    public String createUser(@Valid @RequestBody RegisterUserDTO authUser, HttpServletResponse response) throws ResponseStatusException {
         try {
 
             String token = authServices.createUser(authUser);
+
             if (token != null) {
                 userServices.sendSSEUpdateToEveryone();
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
+
             return token;
 
         } catch (FirebaseAuthException e) {
@@ -53,10 +58,16 @@ public class AuthController {
      * @throws ResponseStatusException
      */
     @PostMapping("/login")
-    public String loginUser(@Valid @RequestBody LoginUserDTO authUser)
+    public String loginUser(@Valid @RequestBody LoginUserDTO authUser, HttpServletResponse response)
             throws ResponseStatusException {
         try {
-            return authServices.loginUser(authUser.getMail(), authUser.getPassword());
+            String token = authServices.loginUser(authUser.getMail(), authUser.getPassword());
+
+            if(token == null) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            }
+
+            return token;
         } catch (FirebaseAuthException | GeneralSecurityException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la connexion");
         }

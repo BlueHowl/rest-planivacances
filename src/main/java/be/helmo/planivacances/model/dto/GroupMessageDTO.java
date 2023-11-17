@@ -1,10 +1,17 @@
 package be.helmo.planivacances.model.dto;
 
+import javax.validation.constraints.NotBlank;
+
 public class GroupMessageDTO {
+    @NotBlank
     private String sender;
+    @NotBlank
     private String displayName;
+    @NotBlank
     private String groupId;
+    @NotBlank
     private String content;
+    @NotBlank
     private int time;
 
     public String getSender() {

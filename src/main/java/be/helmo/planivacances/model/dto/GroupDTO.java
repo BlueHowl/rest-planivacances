@@ -3,17 +3,20 @@ package be.helmo.planivacances.model.dto;
 import be.helmo.planivacances.model.Group;
 import be.helmo.planivacances.model.Place;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.google.cloud.firestore.annotation.Exclude;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
 @Data
 public class GroupDTO {
-    @NotNull
+
+    @Exclude
     private String gid;
-    @NotNull
+    @NotBlank
     @Size(min = 3, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
     private String groupName;
     private String description;
@@ -25,9 +28,9 @@ public class GroupDTO {
     private Date endDate;
     @NotNull
     private Place place;
-    private boolean isPublished;
-    @NotNull
     private String owner;
+
+    public GroupDTO() {}
 
     public GroupDTO(String gid,
                  String groupName,
@@ -35,7 +38,6 @@ public class GroupDTO {
                  Date startDate,
                  Date endDate,
                  Place place,
-                 boolean isPublished,
                  String owner) {
         this.gid = gid;
         this.groupName = groupName;
@@ -43,7 +45,6 @@ public class GroupDTO {
         this.startDate = startDate;
         this.endDate = endDate;
         this.place = place;
-        this.isPublished = isPublished;
         this.owner = owner;
     }
 
@@ -54,7 +55,6 @@ public class GroupDTO {
         this.startDate = g.getStartDate();
         this.endDate = g.getEndDate();
         this.place = null;
-        this.isPublished = g.isPublished();
         this.owner = g.getOwner();
     }
 
@@ -81,10 +81,6 @@ public class GroupDTO {
 
     public Place getPlace() {
         return place;
-    }
-
-    public boolean isPublished() {
-        return isPublished;
     }
 
     public String getOwner() {
@@ -115,10 +111,6 @@ public class GroupDTO {
 
     public void setPlace(Place place) {
         this.place = place;
-    }
-
-    public void setPublished(boolean published) {
-        isPublished = published;
     }
 
     public void setOwner(String owner) {

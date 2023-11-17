@@ -23,29 +23,29 @@ public class GroupController {
     @Autowired
     private GroupService groupServices;
 
-    @Autowired
-    private PlaceService placeServices;
+    //@Autowired
+    //private PlaceService placeServices;
 
     @PostMapping
     public String createGroup(
             HttpServletRequest request,
-            @RequestBody GroupAndPlaceDTO gp) throws ResponseStatusException {
+            @RequestBody GroupDTO group) throws ResponseStatusException {
 
         String uid = (String) request.getAttribute("uid");
 
         try {
             if (uid != null) {
-                Group group = gp.getGroup();
-                Place place = gp.getPlace();
+                //Group group = gp.getGroup();
+                //Place place = gp.getPlace();
 
                 group.setOwner(uid);
-                String gid = groupServices.createGroup(group);
-                String pid = placeServices.createPlace(gid, place);
+                //String gid = groupServices.createGroup(group);
+                /*String pid = placeServices.createPlace(gid, place);
 
                 group.setPlaceId(pid);
-                groupServices.updateGroup(gid, group);
+                groupServices.updateGroup(gid, group);*/
 
-                return gid;
+                return groupServices.createGroup(group);
             } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la creation du groupe");
@@ -54,7 +54,7 @@ public class GroupController {
     }
 
     @GetMapping("/{gid}")
-    public Group getGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
+    public GroupDTO getGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
             try {
                 return groupServices.getGroup(gid);
             } catch (ExecutionException | InterruptedException e) {
@@ -64,7 +64,9 @@ public class GroupController {
     }
 
     @GetMapping("{uid}/list")
-    public List<GroupDTO> getUserGroups(@PathVariable("uid") String uid) throws ResponseStatusException {
+    public List<GroupDTO> getUserGroups(HttpServletRequest request) throws ResponseStatusException {
+        String uid = (String) request.getAttribute("uid");
+
         try {
             //todo use uid
             return groupServices.getGroups();
@@ -74,10 +76,8 @@ public class GroupController {
 
     }
 
-    //!! Avec firebase l'update se fait de la même maniére que le create, il se base sur l'id du document donc si il
-    //existe il est update snn il est créé
     @PutMapping("/{gid}")
-    public String updateGroup(@RequestBody Group group,
+    public String updateGroup(@RequestBody GroupDTO group,
                               @PathVariable("gid") String gid) throws ResponseStatusException {
 
         try {

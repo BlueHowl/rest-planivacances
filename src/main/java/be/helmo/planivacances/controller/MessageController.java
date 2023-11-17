@@ -10,10 +10,12 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("/api/chat")
 public class MessageController {
     @Autowired
     private MessageService messageService;
@@ -24,7 +26,7 @@ public class MessageController {
     @Autowired
     private GroupService groupService;
 
-    @MessageMapping("/chat/connect/{groupId}")
+    @MessageMapping("/connect/{groupId}")
     public void handleWebSocketConnect(@DestinationVariable String groupId, SimpMessageHeaderAccessor headerAccessor) {
         String uid = authService.verifyToken(headerAccessor.getFirstNativeHeader("Authorization"));
         String sessionId = headerAccessor.getSessionId();
@@ -36,7 +38,7 @@ public class MessageController {
         }
     }
 
-    @MessageMapping("/chat/message/{groupId}")
+    @MessageMapping("/message/{groupId}")
     public void handleMessage(@DestinationVariable String groupId, GroupMessageDTO message,SimpMessageHeaderAccessor headerAccessor) {
         String uid = authService.verifyToken(headerAccessor.getFirstNativeHeader("Authorization"));
         if(uid != null && groupService.isInGroup(uid,groupId)) {
