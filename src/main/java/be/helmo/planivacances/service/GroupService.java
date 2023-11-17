@@ -7,30 +7,38 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Service
 public class GroupService {
 
-    private static final String COLLECTION_NAME = "groups";
+    private static final String GROUP_COLLECTION_NAME = "groups";
+
+    private static final String USER_COLLECTION_NAME = "users";
+
+    @Autowired
+    private GroupInviteService groupInviteServices;
 
     public String createGroup(GroupDTO group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-        DocumentReference dr = fdb.collection(COLLECTION_NAME).document();
+        DocumentReference dr = fdb.collection(GROUP_COLLECTION_NAME).document();
 
         ApiFuture<WriteResult> result = dr.set(group);
 
         result.get();
 
-        return dr.getId();
+        String gid = dr.getId();
+
+        //create gid link to uid
+        groupInviteServices.ChangeUserGroupLink(gid, group.getOwner(), true);
+
+        return gid;
     }
 
     public GroupDTO getGroup(String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-        DocumentReference dr = fdb.collection(COLLECTION_NAME).document(gid);
+        DocumentReference dr = fdb.collection(GROUP_COLLECTION_NAME).document(gid);
         ApiFuture<DocumentSnapshot> future = dr.get();
 
         DocumentSnapshot document = future.get();
@@ -38,10 +46,10 @@ public class GroupService {
         return document.exists() ? document.toObject(GroupDTO.class) : null;
     }
 
-    public List<GroupDTO> getGroups() throws ExecutionException, InterruptedException {
+    public List<GroupDTO> getGroups(String uid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-        Iterable<DocumentReference> dr = fdb.collection(COLLECTION_NAME).listDocuments();
-        Iterator<DocumentReference> it = dr.iterator();
+        Iterable<DocumentReference> drs = fdb.collection(GROUP_COLLECTION_NAME).listDocuments();
+        Iterator<DocumentReference> it = drs.iterator();
 
         List<GroupDTO> groupList = new ArrayList<>();
 
@@ -52,16 +60,11 @@ public class GroupService {
 
             GroupDTO group = document.toObject(GroupDTO.class);
             String gid = document.getId();
-            group.setGid(gid);
-            /*Group g = document.toObject(Group.class);
 
-            Place p = placeServices.getPlace(gid, g.getPlaceId());
-
-            GroupDTO gDto = new GroupDTO(g, gid);
-            gDto.setPlace(p);
-
-            groupList.add(gDto);*/
-            groupList.add(document.exists() ? group : null);
+            if(document.exists() && isInGroup(uid, gid)) {
+                group.setGid(gid);
+                groupList.add(group);
+            }
         }
 
         return groupList;
@@ -69,35 +72,31 @@ public class GroupService {
 
     public String updateGroup(String gid, GroupDTO group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(COLLECTION_NAME).document(gid).set(group);
+        ApiFuture<WriteResult> cApiFuture = fdb.collection(GROUP_COLLECTION_NAME).document(gid).set(group);
 
         return String.format("\"Groupe modifié le %s\"", cApiFuture.get().getUpdateTime().toDate()); //todo formattage manuel autorisé?
     }
 
     public String deleteGroup(String gid) {
         Firestore fdb = FirestoreClient.getFirestore();
-        fdb.collection(COLLECTION_NAME).document(gid).delete();
+        fdb.collection(GROUP_COLLECTION_NAME).document(gid).delete();
         return String.format("\"Le groupe %s a bien été supprimé\"", gid);
     }
 
     public boolean isInGroup(String uid, String gid) {
         Firestore fdb = FirestoreClient.getFirestore();
-        DocumentReference userRef = fdb.collection("users").document(uid);
+        Iterable<DocumentReference> drs = fdb.collection(USER_COLLECTION_NAME)
+                .document(uid)
+                .collection(GROUP_COLLECTION_NAME).listDocuments();
 
-        try {
-            DocumentSnapshot document = userRef.get().get();
+        Iterator<DocumentReference> it = drs.iterator();
 
-            if (document.exists()) {
-                if (document.contains("groups")) {
-                    List<String> groups = (List<String>) document.get("groups");
-                    if (groups != null && groups.contains(gid)) {
-                        return true;
-                    }
-                }
+        while(it.hasNext()) {
+            if(it.next().getId().equals(gid)) {
+                return true;
             }
-        } catch (InterruptedException | ExecutionException e) {
-            return false;
         }
+
         return false;
     }
 
