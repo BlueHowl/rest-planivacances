@@ -1,12 +1,7 @@
 package be.helmo.planivacances.controller;
 
-import be.helmo.planivacances.model.Group;
-import be.helmo.planivacances.model.Place;
-import be.helmo.planivacances.model.dto.GroupAndPlaceDTO;
 import be.helmo.planivacances.model.dto.GroupDTO;
-import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.GroupService;
-import be.helmo.planivacances.service.PlaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +18,6 @@ public class GroupController {
     @Autowired
     private GroupService groupServices;
 
-    //@Autowired
-    //private PlaceService placeServices;
-
     @PostMapping
     public String createGroup(
             HttpServletRequest request,
@@ -35,18 +27,11 @@ public class GroupController {
 
         try {
             if (uid != null) {
-                //Group group = gp.getGroup();
-                //Place place = gp.getPlace();
-
                 group.setOwner(uid);
-                //String gid = groupServices.createGroup(group);
-                /*String pid = placeServices.createPlace(gid, place);
-
-                group.setPlaceId(pid);
-                groupServices.updateGroup(gid, group);*/
 
                 return groupServices.createGroup(group);
             } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
+
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la creation du groupe");
         }
@@ -63,13 +48,12 @@ public class GroupController {
             }
     }
 
-    @GetMapping("{uid}/list")
+    @GetMapping("/{uid}/list")
     public List<GroupDTO> getUserGroups(HttpServletRequest request) throws ResponseStatusException {
         String uid = (String) request.getAttribute("uid");
 
         try {
-            //todo use uid
-            return groupServices.getGroups();
+            return groupServices.getGroups(uid);
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la recuperation des groupes");
         }
@@ -81,14 +65,6 @@ public class GroupController {
                               @PathVariable("gid") String gid) throws ResponseStatusException {
 
         try {
-            /*Group group = new Group(groupDTO.getGroupName(),
-                    groupDTO.getDescription(),
-                    groupDTO.getStartDate(),
-                    groupDTO.getEndDate(),
-                    groupDTO.getPlaceId(),
-                    groupDTO.isPublished(),
-                    groupDTO.getOwner());*/
-
             return groupServices.updateGroup(gid, group);
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la mise à jour du groupe");
