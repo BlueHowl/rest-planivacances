@@ -54,18 +54,19 @@ public class UserService {
     }
 
     public void sendSSEUpdateToEveryone() {
-        Iterator<SseEmitter> iterator = emitters.iterator();
-        while (iterator.hasNext()) {
-            SseEmitter emitter = iterator.next();
+        List<SseEmitter> emittersToRemove = new ArrayList<>();
+
+        for (SseEmitter emitter : emitters) {
             try {
                 int userCount = getNumberOfUsers();
                 emitter.send(SseEmitter.event().name("message").data(String.valueOf(userCount),
                         MediaType.TEXT_EVENT_STREAM));
             } catch (Exception e) {
                 emitter.complete();
-                iterator.remove();
+                emittersToRemove.add(emitter);
             }
         }
+        emittersToRemove.forEach(emitters::remove);
     }
 
     public void sendSSEUpdateToSomeone(SseEmitter emitter) {

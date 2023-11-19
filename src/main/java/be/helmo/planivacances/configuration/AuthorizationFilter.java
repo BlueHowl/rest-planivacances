@@ -2,6 +2,7 @@ package be.helmo.planivacances.configuration;
 
 import be.helmo.planivacances.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -16,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
+@Order(2)
 public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcConfigurer {
 
     private final List<String> excludedEndpoints = Arrays.asList(
@@ -67,6 +69,5 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         request.setAttribute("uid",uid);
 
         filterChain.doFilter(request, response);
-        // Stocker l'UID dans l'objet HttpServletRequest pour qu'il soit accessible dans le controller
     }
 }
