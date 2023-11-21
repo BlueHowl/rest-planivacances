@@ -5,35 +5,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 @Component
 @Order(2)
 public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcConfigurer {
 
-    private final List<String> excludedEndpoints = Arrays.asList(
+    private final String[] excludedEndpoints = {
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/token",
             "/api/users/number",
             "/api/users/number/flux",
             "/api/users/admin/message",
-            "/api/users/country/**",
-            "/api/chat/**"
-            // Add more exclusion patterns as needed
-    );
+            "/api/users/country/{variable}"};
 
-    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Autowired
     private AuthService authServices;
@@ -48,9 +42,8 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             filterChain.doFilter(request,response);
             return;
         }
-        // Check if the request URI matches any excluded endpoint pattern
-        if (excludedEndpoints.stream().anyMatch(pattern -> pathMatcher.match(pattern, request.getRequestURI()))) {
-            // Continue with the filter chain for excluded requests
+
+        if (shouldExclude(request)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -74,5 +67,18 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         request.setAttribute("uid",uid);
 
         filterChain.doFilter(request, response);
+    }
+
+    private boolean shouldExclude(ServletRequest request) {
+        String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI();
+
+        // Check if the URI matches any excluded pattern
+        for (String excludedEndpoint : excludedEndpoints) {
+            if (uri.startsWith(excludedEndpoint) || uri.matches(".+" + excludedEndpoint.replace("{variable}", "[^/]+"))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
