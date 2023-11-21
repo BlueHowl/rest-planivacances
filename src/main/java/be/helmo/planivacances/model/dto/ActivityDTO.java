@@ -1,6 +1,5 @@
 package be.helmo.planivacances.model.dto;
 
-import be.helmo.planivacances.model.Place;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import javax.validation.constraints.NotBlank;

@@ -18,6 +18,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/websocket-groupMessages").withSockJS();
+        registry.addEndpoint("/websocket-groupMessages").setAllowedOrigins("*").setHandshakeHandler(new CustomHandshakeHandler());
+
+        registry.addEndpoint("/websocket-groupMessages").setAllowedOrigins("*").setHandshakeHandler(new CustomHandshakeHandler()).withSockJS();
     }
 }

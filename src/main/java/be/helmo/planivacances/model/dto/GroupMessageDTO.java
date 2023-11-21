@@ -1,5 +1,6 @@
 package be.helmo.planivacances.model.dto;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 
 public class GroupMessageDTO {
@@ -11,8 +12,8 @@ public class GroupMessageDTO {
     private String groupId;
     @NotBlank
     private String content;
-    @NotBlank
-    private int time;
+    @Min(0)
+    private long time;
 
     public String getSender() {
         return sender;
@@ -30,7 +31,7 @@ public class GroupMessageDTO {
         return content;
     }
 
-    public int getTime() {
+    public long getTime() {
         return time;
     }
 
@@ -50,7 +51,7 @@ public class GroupMessageDTO {
         this.content = content;
     }
 
-    public void setTime(int time) {
+    public void setTime(long time) {
         this.time = time;
     }
 }

@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 
 @Component
@@ -40,6 +41,10 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             HttpServletResponse response,
             FilterChain filterChain
     ) throws ServletException, IOException {
+        if("websocket".equalsIgnoreCase(request.getHeader("upgrade"))) {
+            filterChain.doFilter(request,response);
+            return;
+        }
         // Check if the request URI matches any excluded endpoint pattern
         if (excludedEndpoints.stream().anyMatch(request.getRequestURI()::matches)) {
             // Continue with the filter chain for excluded requests
@@ -49,8 +54,6 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
 
         String authorizationHeader = request.getHeader("Authorization");
         String uid = null;
-
-        System.out.println("token : " + authorizationHeader);
 
         if (authorizationHeader == null || authorizationHeader.isEmpty()) {
             // Authorization header is not present, return 401 Unauthorized
