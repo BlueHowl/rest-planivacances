@@ -28,8 +28,7 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             "/api/users/number",
             "/api/users/number/flux",
             "/api/users/admin/message",
-            "/api/users/country/**",
-            "/api/chat/**"
+            "/api/users/country/**"
             // Add more exclusion patterns as needed
     );
 
