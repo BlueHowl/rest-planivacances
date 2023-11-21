@@ -73,8 +73,8 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI();
 
         // Check if the URI matches any excluded pattern
-        for (String excludedEndpoint : excludedEndpoints) {
-            if (uri.startsWith(excludedEndpoint) || uri.matches(".+" + excludedEndpoint.replace("{variable}", "[^/]+"))) {
+        for (String excludedEndpoint : excludedEndpoints) {//".+" +
+            if (uri.startsWith(excludedEndpoint) || uri.matches( excludedEndpoint.replace("{variable}", "[^/]+"))) {
                 return true;
             }
         }

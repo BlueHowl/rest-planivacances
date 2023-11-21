@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @Controller
 public class MessageController {
@@ -57,7 +58,7 @@ public class MessageController {
     }
 
     @EventListener
-    public void handleWebSocketSubscribe(SessionSubscribeEvent event) {
+    public void handleWebSocketSubscribe(SessionSubscribeEvent event) throws ExecutionException, InterruptedException {
         SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
         String destination = headerAccessor.getDestination();
 
@@ -92,7 +93,7 @@ public class MessageController {
     }
 
     @MessageMapping("/message")
-    public void handleMessage(@Payload  GroupMessageDTO message, SimpMessageHeaderAccessor headerAccessor) {
+    public void handleMessage(@Payload  GroupMessageDTO message, SimpMessageHeaderAccessor headerAccessor) throws ExecutionException, InterruptedException {
         String uid = authService.verifyToken(headerAccessor.getFirstNativeHeader("Authorization"));
         String groupId = headerAccessor.getFirstNativeHeader("GroupId");
         if(uid != null && groupId != null && groupService.isInGroup(uid,groupId)) {

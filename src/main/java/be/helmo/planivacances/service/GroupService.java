@@ -8,6 +8,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.Element;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -84,18 +85,32 @@ public class GroupService {
         return String.format("\"Le groupe %s a bien été supprimé\"", gid);
     }
 
-    public boolean isInGroup(String uid, String gid) {
+    public boolean isInGroup(String uid, String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         Iterable<DocumentReference> drs = fdb.collection(USER_COLLECTION_NAME)
                 .document(uid)
                 .collection(GROUP_COLLECTION_NAME).listDocuments();
 
-        Iterator<DocumentReference> it = drs.iterator();
+        for (DocumentReference dr : drs) {
+            if(dr.getId().equals(gid)) {
 
-        while(it.hasNext()) {
-            if(it.next().getId().equals(gid)) {
-                return true;
+                ApiFuture<DocumentSnapshot> future = dr.get();
+                DocumentSnapshot documentSnapshot = future.get();
+
+                if (documentSnapshot.exists()) {
+                    // Assuming "accepted" is a boolean field in the document
+                    Boolean accepted = documentSnapshot.getBoolean("accepted");
+
+                    if (accepted != null && accepted) {
+                        return true;
+                    }
+                }
             }
+
+                /*ApiFuture<DocumentSnapshot> future = dr.get();
+            boolean accepted = Boolean.TRUE.equals(future.get().getBoolean("accepted"));
+            System.out.println(accepted);
+            return dr.getId().equals(gid) && accepted;*/
         }
 
         return false;
