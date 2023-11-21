@@ -1,6 +1,7 @@
 package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.dto.GroupDTO;
+import be.helmo.planivacances.model.firebase.dto.DBGroupDTO;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -24,7 +25,7 @@ public class GroupService {
         Firestore fdb = FirestoreClient.getFirestore();
         DocumentReference dr = fdb.collection(GROUP_COLLECTION_NAME).document();
 
-        ApiFuture<WriteResult> result = dr.set(group);
+        ApiFuture<WriteResult> result = dr.set(new DBGroupDTO(group));
 
         result.get();
 
@@ -98,6 +99,43 @@ public class GroupService {
         }
 
         return false;
+    }
+
+    public boolean updateGroupUserCount(String groupId, int delta) {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference groupDocRef = fdb.collection("groups").document(groupId);
+
+        fdb.runTransaction(transaction -> {
+            DocumentSnapshot groupSnapshot = (DocumentSnapshot) transaction.get(groupDocRef);
+
+            if (groupSnapshot.exists()) {
+                Long currentCount = groupSnapshot.getLong("userCount");
+
+                if (currentCount != null) {
+                    long newCount = currentCount + delta;
+
+                    // Ensure the count doesn't go below 0
+                    if (newCount >= 0) {
+                        transaction.update(groupDocRef, "userCount", newCount);
+                        //return newCount;
+                    } else {
+                        return false;
+                        //throw new RuntimeException("Invalid user count: " + newCount);
+                    }
+                } else {
+                    return false;
+                    //throw new RuntimeException("userCount field not found in the group document");
+                }
+            } else {
+                return false;
+                //throw new RuntimeException("Group not found");
+            }
+            return true;
+        });
+
+        System.out.println("User count updated successfully");
+
+        return true;
     }
 
 }

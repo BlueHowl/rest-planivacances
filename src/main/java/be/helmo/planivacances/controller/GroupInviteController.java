@@ -19,6 +19,8 @@ public class GroupInviteController {
     @Autowired
     private GroupInviteService groupInviteServices;
 
+    @Autowired GroupService groupServices;
+
     @PostMapping("/invitation/{gid}/{uid}")
     public boolean inviteUser(@PathVariable("gid") String gid,
                                       @PathVariable("uid") String uid) throws ResponseStatusException {
@@ -36,7 +38,8 @@ public class GroupInviteController {
 
         String uid = (String) request.getAttribute("uid");
 
-        if(groupInviteServices.ChangeUserGroupLink(gid, uid, true)) {
+        if(groupInviteServices.ChangeUserGroupLink(gid, uid, true) &&
+                groupServices.updateGroupUserCount(gid, 1)) {
             return true;
         } else throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                 "Erreur lors de l'acceptation de la requête");

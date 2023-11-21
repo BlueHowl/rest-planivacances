@@ -48,7 +48,7 @@ public class GroupController {
             }
     }
 
-    @GetMapping("/{uid}/list")
+    @GetMapping("/list")
     public List<GroupDTO> getUserGroups(HttpServletRequest request) throws ResponseStatusException {
         String uid = (String) request.getAttribute("uid");
 

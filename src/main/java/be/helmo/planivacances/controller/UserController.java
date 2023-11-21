@@ -13,6 +13,9 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import be.helmo.planivacances.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.ParseException;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -28,6 +31,17 @@ public class UserController {
         } catch (FirebaseAuthException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erreur lors du chargement de l'utilisateur");
+        }
+    }
+
+    @GetMapping("/country/{givenDate}")
+    public Map<String, Integer> getNumberOfUsersPerCountry(@PathVariable("givenDate") String givenDate) {
+        try {
+            return userServices.getUserCountPerCountry(givenDate);
+        } catch (ExecutionException | InterruptedException | ParseException e) {
+            e.printStackTrace();
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la récupération du nombre d'utilisateur par pays");
         }
     }
 

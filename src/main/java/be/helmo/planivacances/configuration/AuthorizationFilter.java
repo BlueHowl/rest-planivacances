@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -14,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 
 @Component
@@ -28,9 +28,12 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             "/api/users/number",
             "/api/users/number/flux",
             "/api/users/admin/message",
-            "/api/chat/*"
+            "/api/users/country/**",
+            "/api/chat/**"
             // Add more exclusion patterns as needed
     );
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Autowired
     private AuthService authServices;
@@ -46,7 +49,7 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             return;
         }
         // Check if the request URI matches any excluded endpoint pattern
-        if (excludedEndpoints.stream().anyMatch(request.getRequestURI()::matches)) {
+        if (excludedEndpoints.stream().anyMatch(pattern -> pathMatcher.match(pattern, request.getRequestURI()))) {
             // Continue with the filter chain for excluded requests
             filterChain.doFilter(request, response);
             return;
@@ -66,9 +69,8 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             response.getWriter().write("Unauthorized: Token invalide");
             return;
         }
-        System.out.println("uid : " + uid);
-        // Continue with the filter chain for all other requests
 
+        // Continue with the filter chain for all other requests
         request.setAttribute("uid",uid);
 
         filterChain.doFilter(request, response);
