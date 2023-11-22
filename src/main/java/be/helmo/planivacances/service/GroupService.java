@@ -120,8 +120,8 @@ public class GroupService {
         Firestore fdb = FirestoreClient.getFirestore();
         DocumentReference groupDocRef = fdb.collection("groups").document(groupId);
 
-        fdb.runTransaction(transaction -> {
-            DocumentSnapshot groupSnapshot = (DocumentSnapshot) transaction.get(groupDocRef);
+        try {
+            DocumentSnapshot groupSnapshot = groupDocRef.get().get();
 
             if (groupSnapshot.exists()) {
                 Long currentCount = groupSnapshot.getLong("userCount");
@@ -131,26 +131,29 @@ public class GroupService {
 
                     // Ensure the count doesn't go below 0
                     if (newCount >= 0) {
-                        transaction.update(groupDocRef, "userCount", newCount);
-                        //return newCount;
+                        groupDocRef.update("userCount", newCount);
+                        System.out.println("User count updated successfully");
+                        return true;
                     } else {
+                        // Handle the case of an invalid user count
+                        System.err.println("Invalid user count: " + newCount);
                         return false;
-                        //throw new RuntimeException("Invalid user count: " + newCount);
                     }
                 } else {
+                    // Handle the case where the userCount field is not found
+                    System.err.println("userCount field not found in the group document");
                     return false;
-                    //throw new RuntimeException("userCount field not found in the group document");
                 }
             } else {
+                // Handle the case where the group is not found
+                System.err.println("Group not found");
                 return false;
-                //throw new RuntimeException("Group not found");
             }
-            return true;
-        });
-
-        System.out.println("User count updated successfully");
-
-        return true;
+        } catch (Exception e) {
+            // Handle exceptions
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

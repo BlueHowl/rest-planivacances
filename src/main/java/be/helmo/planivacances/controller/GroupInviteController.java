@@ -45,6 +45,11 @@ public class GroupInviteController {
         try {
             String uid = userServices.findUserUidByEmail(mail);
 
+            if(groupServices.isInGroup(uid, gid)) {
+                throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED,
+                        "L'utilisateur est déjà dans le groupe");
+            }
+
             if (groupInviteServices.ChangeUserGroupLink(gid, uid, false)) {
                 return true;
             } else throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -62,8 +67,8 @@ public class GroupInviteController {
         String uid = (String) request.getAttribute("uid");
 
         try {
-            if(groupInviteServices.ChangeUserGroupLink(gid, uid, true) &&
-                    groupServices.updateGroupUserCount(gid, 1)) {
+            if(groupServices.updateGroupUserCount(gid, 1) &&
+                    groupInviteServices.ChangeUserGroupLink(gid, uid, true)) {
                 return true;
             } else throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
                     "Erreur lors de l'acceptation de l'invitation");
