@@ -14,12 +14,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/group");
         config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/websocket-groupMessages").setAllowedOrigins("*").setHandshakeHandler(new CustomHandshakeHandler());
-
         registry.addEndpoint("/websocket-groupMessages").setAllowedOrigins("*").setHandshakeHandler(new CustomHandshakeHandler()).withSockJS();
     }
 }

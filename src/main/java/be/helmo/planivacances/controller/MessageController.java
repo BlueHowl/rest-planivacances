@@ -3,22 +3,16 @@ package be.helmo.planivacances.controller;
 import be.helmo.planivacances.model.dto.GroupMessageDTO;
 import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.GroupService;
+import be.helmo.planivacances.service.interfaces.MessageListener;
 import be.helmo.planivacances.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
-import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
+import org.springframework.web.socket.messaging.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Controller
-public class MessageController {
+public class MessageController implements MessageListener {
     @Autowired
     private MessageService messageService;
     @Autowired
@@ -74,12 +68,13 @@ public class MessageController {
                 recentMessages.forEach(message ->
                     messagingTemplate.convertAndSendToUser(username,"/group/messages",message)
                 );
+                messageService.addListener(this);
             }
         }
     }
 
     @EventListener
-    public void handleWebSocketClose(SessionUnsubscribeEvent event) {
+    public void handleWebSocketClose(SessionDisconnectEvent event) {
         SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
 
         String token = headerAccessor.getFirstNativeHeader("Authorization");
@@ -89,6 +84,7 @@ public class MessageController {
 
         if(uid != null && username != null) {
             removeEntry(groupId,username);
+            messageService.removeListener(this);
         }
     }
 
@@ -100,6 +96,13 @@ public class MessageController {
             message.setGroupId(groupId);
             message.setSender(uid);
             messageService.saveMessage(groupId, message);
+        }
+    }
+
+    @Override
+    public void onNewMessage(GroupMessageDTO message) {
+        if(message != null) {
+            String groupId = message.getGroupId();
             for(var username : getUsersForGid(groupId)) {
                 messagingTemplate.convertAndSendToUser(username,"/group/messages",message);
             }
