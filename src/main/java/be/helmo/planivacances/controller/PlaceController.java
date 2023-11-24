@@ -1,7 +1,6 @@
 package be.helmo.planivacances.controller;
 
 import be.helmo.planivacances.model.Place;
-import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.PlaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,7 @@ public class PlaceController {
             throws ResponseStatusException {
 
         try {
-            return placeServices.createPlace(gid, place);
+            return placeServices.createOrGetPlace(gid, place);
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la creation du lieu");
         }

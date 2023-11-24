@@ -20,6 +20,15 @@ public class ActivityDTO {
     @NotBlank
     private String placeId;
 
+    public ActivityDTO() {}
+
+    public ActivityDTO(String title, String description, Date startDate, int duration, String placeId) {
+        this.title = title;
+        this.description = description;
+        this.startDate = startDate;
+        this.duration = duration;
+        this.placeId = placeId;
+    }
 
     //getters
 

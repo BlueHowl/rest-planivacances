@@ -7,6 +7,7 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
@@ -52,6 +53,56 @@ public class ActivityService {
         }
 
         return calendar.toString();
+    }
+
+    public String createGroupActivity(String gid, ActivityDTO activity) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document();
+
+        ApiFuture<WriteResult> result = dr.set(activity);
+
+        result.get();
+
+        return dr.getId();
+    }
+
+    public boolean updateGroupActivity(String gid, String aid, ActivityDTO activity) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document(aid);
+
+        ApiFuture<WriteResult> result = dr.set(activity);
+
+        result.get();
+
+        return result.isDone();
+    }
+
+    public Activity getGroupActivity(String gid, String pid) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document(pid);
+
+        ActivityDTO activityDTO = dr.get().get().toObject(ActivityDTO.class);
+
+        Place place = placeService.getPlace(gid, activityDTO.getPlaceId());
+
+        if(place != null) {
+            return new Activity(activityDTO.getTitle(),
+                    activityDTO.getDescription(),
+                    activityDTO.getStartDate(),
+                    activityDTO.getDuration(),
+                    place);
+        }
+
+        return null;
     }
 
     public List<Activity> getGroupActivities(String gid) throws ExecutionException, InterruptedException {
