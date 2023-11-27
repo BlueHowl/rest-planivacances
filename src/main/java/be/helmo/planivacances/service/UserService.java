@@ -33,33 +33,6 @@ public class UserService {
     private final Set<SseEmitter> emitters = new HashSet<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-
-    //public boolean setFcmToken(String uid, String registrationToken) throws ExecutionException, InterruptedException {
-        /*Firestore fdb = FirestoreClient.getFirestore();
-
-        HashMap<String, String> map = new HashMap<>();
-        map.put("fcmRegistrationTkn", registrationToken);
-        ApiFuture<WriteResult> result = fdb.collection("users")
-                .document(uid).set(map);
-
-        result.get();
-
-        return result.isDone();*/
-    //}
-
-    /*public String getUserFcmToken(String uid) throws ExecutionException, InterruptedException {
-        Firestore fdb = FirestoreClient.getFirestore();
-
-        ApiFuture<DocumentSnapshot> result = fdb.collection("users")
-                .document(uid).get(FieldMask.of("fcmRegistrationTkn"));
-
-        if (result.get().exists()) {
-            return result.get().getString("fcmRegistrationTkn");
-        }
-
-        return null;
-    }*/
-
     /**
      * Récupère le nombre d'utilisateurs de PlaniVacances
      *

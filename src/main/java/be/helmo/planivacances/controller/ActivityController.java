@@ -2,8 +2,12 @@ package be.helmo.planivacances.controller;
 
 import be.helmo.planivacances.model.Activity;
 import be.helmo.planivacances.model.dto.ActivityDTO;
+import be.helmo.planivacances.model.dto.GroupDTO;
 import be.helmo.planivacances.service.ActivityService;
+import be.helmo.planivacances.service.FcmService;
+import be.helmo.planivacances.service.GroupService;
 import be.helmo.planivacances.service.PlaceService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +22,16 @@ import java.util.concurrent.ExecutionException;
 public class ActivityController {
 
     @Autowired
+    private GroupService groupServices;
+
+    @Autowired
     private ActivityService activityServices;
 
     @Autowired
     private PlaceService placeServices;
+
+    @Autowired
+    private FcmService fcmServices;
 
     @PostMapping("/{gid}")
     public String createActivity(@PathVariable("gid") String gid, @RequestBody Activity activity) {
@@ -36,10 +46,17 @@ public class ActivityController {
                     activity.getDuration(),
                     pid);
 
+            GroupDTO group = groupServices.getGroup(gid);
+
+            fcmServices.sendActivityAddedNotification(gid, group.getGroupName(), activity.getTitle());
+
             return activityServices.createGroupActivity(gid, activityDTO);
         } catch (ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erreur lors de la création de l'activité");
+        } catch (FirebaseMessagingException e) {
+            System.out.printf("Notification de l'activité %s non distribuée pour le groupe %s", activity.getTitle(), gid);
+            return null;
         }
     }
 

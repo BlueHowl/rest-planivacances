@@ -68,7 +68,7 @@ public class GroupInviteController {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT,
                     "Erreur lors de l'envoi de l'invitation");
         } catch (FirebaseMessagingException e) {
-            System.out.printf("Notification d'invitation à %s non distribuée pour %s%n", gid, mail);
+            System.out.printf("Notification d'invitation à %s non distribuée pour l'utilisateur %s", gid, mail);
             return true;
         }
     }
