@@ -3,7 +3,9 @@ package be.helmo.planivacances.controller;
 import be.helmo.planivacances.model.User;
 import be.helmo.planivacances.model.dto.FormContactDTO;
 import be.helmo.planivacances.service.AuthService;
+import be.helmo.planivacances.service.FcmService;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +25,24 @@ public class UserController {
     @Autowired
     private UserService userServices;
 
-    @PostMapping("/")
+    @Autowired
+    private FcmService fcmServices;
+
+    @PostMapping("/{token}")
+    public boolean setUserRegistrationToken(HttpServletRequest request,
+                                            @PathVariable("token") String registrationToken) {
+
+        String uid = (String) request.getAttribute("uid");
+
+        try {
+            return fcmServices.subscribeUser(uid, registrationToken);
+        } catch (FirebaseMessagingException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la sauvegarde du token d'enregistrement fcm");
+        }
+    }
+
+    @GetMapping
     public User getUserDetails(HttpServletRequest request) {
         String uid = (String) request.getAttribute("uid");
         try {

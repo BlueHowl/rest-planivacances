@@ -18,15 +18,6 @@ public class GroupInviteService {
 
     private static final String USER_COLLECTION_NAME = "users";
 
-    /*public List<String> listUserGroupInvites(String uid) throws ExecutionException, InterruptedException {
-        Firestore fdb = FirestoreClient.getFirestore();
-
-        ApiFuture<WriteResult> result = fdb.collection(USER_COLLECTION_NAME)
-                .document(uid)
-                .collection(GROUP_COLLECTION_NAME)
-                .whereEqualTo("accepted", false).get().get();
-
-    }*/
 
     public List<GroupInviteDTO> listUserGroupInvites(String uid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();

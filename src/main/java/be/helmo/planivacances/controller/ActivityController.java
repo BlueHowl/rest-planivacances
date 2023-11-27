@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @RestController
@@ -82,7 +83,7 @@ public class ActivityController {
     }
 
     @GetMapping("/{gid}")
-    public List<Activity> getGroupActivities(@PathVariable("gid") String gid)
+    public Map<String, Activity> getGroupActivities(@PathVariable("gid") String gid)
             throws ResponseStatusException {
 
         try {
@@ -92,6 +93,11 @@ public class ActivityController {
                     "Erreur lors de la récupération des activités");
         }
 
+    }
+
+    @DeleteMapping("/{gid}/{aid}")
+    public String deleteActivity(@PathVariable("gid") String gid, @PathVariable("aid") String aid) {
+        return activityServices.deleteActivity(gid, aid);
     }
 
     @GetMapping("/calendar/{gid}")

@@ -1,10 +1,13 @@
 package be.helmo.planivacances.controller;
 
+import be.helmo.planivacances.model.dto.GroupDTO;
 import be.helmo.planivacances.model.dto.GroupInviteDTO;
+import be.helmo.planivacances.service.FcmService;
 import be.helmo.planivacances.service.GroupInviteService;
 import be.helmo.planivacances.service.GroupService;
 import be.helmo.planivacances.service.UserService;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +29,9 @@ public class GroupInviteController {
 
     @Autowired
     private UserService userServices;
+
+    @Autowired
+    private FcmService fcmServices;
 
     @GetMapping
     public List<GroupInviteDTO> getUserGroupInvites(HttpServletRequest request) {
@@ -50,13 +56,20 @@ public class GroupInviteController {
                         "L'utilisateur est déjà dans le groupe");
             }
 
+            GroupDTO group = groupServices.getGroup(gid);
+
             if (groupInviteServices.ChangeUserGroupLink(gid, uid, false)) {
+                fcmServices.sendInviteNotification(uid, group.getGroupName());
+
                 return true;
             } else throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Erreur lors de l'envoi de l'invitation");
         } catch (FirebaseAuthException | ExecutionException | InterruptedException e) {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT,
                     "Erreur lors de l'envoi de l'invitation");
+        } catch (FirebaseMessagingException e) {
+            System.out.printf("Notification d'invitation à %s non distribuée pour %s%n", gid, mail);
+            return true;
         }
     }
 
