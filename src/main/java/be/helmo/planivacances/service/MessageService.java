@@ -115,9 +115,9 @@ public class MessageService {
         }
     }
 
-    public void saveMessage(String groupId, GroupMessageDTO message) {
+    public void saveMessage(GroupMessageDTO message) {
         DatabaseReference databaseReference = FirebaseDatabase.getInstance("https://planivacances-default-rtdb.europe-west1.firebasedatabase.app/").getReference();
-        DatabaseReference groupMessagesRef = databaseReference.child("group-messages").child(groupId);
+        DatabaseReference groupMessagesRef = databaseReference.child("group-messages").child(message.getGroupId());
         groupMessagesRef.push().setValueAsync(message);
     }
 
