@@ -1,6 +1,7 @@
 package be.helmo.planivacances.configuration;
 
 import be.helmo.planivacances.service.AuthService;
+import be.helmo.planivacances.service.GroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -28,11 +29,24 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             "/api/users/admin/message",
             "/api/chat/message",
             "/api/chat/messages",
-            "/api/users/country/{variable}"};
+            "/api/users/country/{variable}"
+    };
+
+    private final String[] verifyIsInGroupEndpoints = {
+            "/api/activity/{variable}",
+            "/api/activity/{variable}/{variable}",
+            "/api/group/{variable}",
+            "/api/group/invitation/{variable}/{variable}",
+            "/api/place/{variable}",
+            "/api/place/{variable}/{variable}"
+    };
 
 
     @Autowired
     private AuthService authServices;
+
+    @Autowired
+    private GroupService groupServices;
 
     @Override
     protected void doFilterInternal(
@@ -45,7 +59,8 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             return;
         }
 
-        if (shouldExclude(request)) {
+        //filter endpoints with non-needed authorization
+        if (doRequestContains(request, excludedEndpoints)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -65,17 +80,34 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             return;
         }
 
+        //filter access and define forbidden actions
+        if(doRequestContains(request, verifyIsInGroupEndpoints)) {
+            String gid = (String) request.getAttribute("gid");
+
+            if(!groupServices.isInGroup(uid, gid)) {
+                response.setStatus(HttpStatus.FORBIDDEN.value());
+                response.getWriter().write("Forbidden: L'utilisateur n'a pas accès au groupe");
+                return;
+            }
+        }
+
         // Continue with the filter chain for all other requests
         request.setAttribute("uid",uid);
 
         filterChain.doFilter(request, response);
     }
 
-    private boolean shouldExclude(ServletRequest request) {
+    /**
+     * Check if the request uri is in the list provided
+     * @param request (ServletRequest)
+     * @param list (String[]) list of endpoints
+     * @return (true) if the list contains the uri of the request
+     */
+    private boolean doRequestContains(ServletRequest request, String[] list) {
         String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI();
 
         // Check if the URI matches any excluded pattern
-        for (String excludedEndpoint : excludedEndpoints) {//".+" +
+        for (String excludedEndpoint : list) {//".+" +
             if (uri.startsWith(excludedEndpoint) || uri.matches( excludedEndpoint.replace("{variable}", "[^/]+"))) {
                 return true;
             }

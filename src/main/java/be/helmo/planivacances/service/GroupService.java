@@ -85,32 +85,31 @@ public class GroupService {
         return String.format("\"Le groupe %s a bien été supprimé\"", gid);
     }
 
-    public boolean isInGroup(String uid, String gid) throws ExecutionException, InterruptedException {
+    public boolean isInGroup(String uid, String gid) {
         Firestore fdb = FirestoreClient.getFirestore();
         Iterable<DocumentReference> drs = fdb.collection(USER_COLLECTION_NAME)
                 .document(uid)
                 .collection(GROUP_COLLECTION_NAME).listDocuments();
 
-        for (DocumentReference dr : drs) {
-            if(dr.getId().equals(gid)) {
+        try {
+            for (DocumentReference dr : drs) {
+                if (dr.getId().equals(gid)) {
 
-                ApiFuture<DocumentSnapshot> future = dr.get();
-                DocumentSnapshot documentSnapshot = future.get();
+                    ApiFuture<DocumentSnapshot> future = dr.get();
+                    DocumentSnapshot documentSnapshot = future.get();
 
-                if (documentSnapshot.exists()) {
-                    // Assuming "accepted" is a boolean field in the document
-                    Boolean accepted = documentSnapshot.getBoolean("accepted");
+                    if (documentSnapshot.exists()) {
+                        // Assuming "accepted" is a boolean field in the document
+                        Boolean accepted = documentSnapshot.getBoolean("accepted");
 
-                    if (accepted != null && accepted) {
-                        return true;
+                        if (accepted != null && accepted) {
+                            return true;
+                        }
                     }
                 }
             }
-
-                /*ApiFuture<DocumentSnapshot> future = dr.get();
-            boolean accepted = Boolean.TRUE.equals(future.get().getBoolean("accepted"));
-            System.out.println(accepted);
-            return dr.getId().equals(gid) && accepted;*/
+        } catch (ExecutionException | InterruptedException e) {
+            return false;
         }
 
         return false;
