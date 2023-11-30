@@ -3,105 +3,97 @@ package be.helmo.planivacances.controller;
 import be.helmo.planivacances.model.dto.GroupMessageDTO;
 import be.helmo.planivacances.service.AuthService;
 import be.helmo.planivacances.service.GroupService;
+import be.helmo.planivacances.service.interfaces.MessageListener;
 import be.helmo.planivacances.service.MessageService;
+import com.pusher.rest.Pusher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
-import org.springframework.messaging.simp.SimpMessageType;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.socket.messaging.SessionConnectEvent;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
-import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @Controller
-public class MessageController {
+@DependsOn("messageService")
+@RequestMapping("/api/chat")
+public class MessageController implements MessageListener {
     @Autowired
     private MessageService messageService;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+
     @Autowired
     private AuthService authService;
+
     @Autowired
     private GroupService groupService;
 
-    private Map<String,List<String>> groups = new HashMap<>();
+    @Autowired
+    private Pusher pusher;
 
-    private void addUserInGroup(String gid,String username) {
-        groups.computeIfAbsent(gid,k -> new ArrayList<>()).add(username);
+    @PostConstruct
+    public void init() {
+        messageService.addListener(this);
     }
 
-    private List<String> getUsersForGid(String gid) {
-        return groups.getOrDefault(gid, new ArrayList<>());
+    @PreDestroy
+    public void destroy() {
+        messageService.removeListener(this);
     }
 
-    private void removeEntry(String gid, String username) {
-        List<String> usernames = groups.get(gid);
-        if (usernames != null) {
-            usernames.remove(username);
-            if (usernames.isEmpty()) {
-                groups.remove(gid);
+    @PostMapping("/")
+    public ResponseEntity<String> authenticate(@RequestParam("socket_id") String socketId, @RequestParam("channel_name") String channelName, @RequestHeader("Authorization") String authToken) throws ExecutionException, InterruptedException {
+        String uid;
+        String gid = channelName.replaceAll("private-","");
+        if((uid = authService.verifyToken(authToken)) != null) {
+            if (groupService.isInGroup(uid, gid)) {
+                String auth = pusher.authenticate(socketId,channelName);
+                return ResponseEntity.ok(auth);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized");
             }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
     }
 
-    @EventListener
-    public void handleWebSocketSubscribe(SessionSubscribeEvent event) {
-        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
-        String destination = headerAccessor.getDestination();
-
-        if ("/user/group/messages".equals(destination)) {
-            String token = headerAccessor.getFirstNativeHeader("Authorization");
-            String groupId = headerAccessor.getFirstNativeHeader("GroupId");
-            String uid = authService.verifyToken(token);
-            String username = headerAccessor.getUser().getName();
-
-            if(uid != null && username != null && groupService.isInGroup(uid,groupId)) {
-                addUserInGroup(groupId,username);
-                List<GroupMessageDTO> recentMessages = messageService.getRecentMessages(groupId, 100);
-                recentMessages.forEach(message ->
-                    messagingTemplate.convertAndSendToUser(username,"/group/messages",message)
-                );
+    @PostMapping("/messages")
+    public ResponseEntity<List<GroupMessageDTO>> sendPreviousMessages(@RequestHeader("Authorization") String authToken, @RequestHeader("GID") String gid) throws ExecutionException, InterruptedException {
+        String uid;
+        if((uid = authService.verifyToken(authToken)) != null) {
+            if(groupService.isInGroup(uid,gid)) {
+                List<GroupMessageDTO> previousMessages = messageService.getRecentMessages(gid, 100);
+                return ResponseEntity.ok(previousMessages);
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
-    @EventListener
-    public void handleWebSocketClose(SessionUnsubscribeEvent event) {
-        SimpMessageHeaderAccessor headerAccessor = SimpMessageHeaderAccessor.wrap(event.getMessage());
-
-        String token = headerAccessor.getFirstNativeHeader("Authorization");
-        String groupId = headerAccessor.getFirstNativeHeader("GroupId");
-        String uid = authService.verifyToken(token);
-        String username = headerAccessor.getUser().getName();
-
-        if(uid != null && username != null) {
-            removeEntry(groupId,username);
+    @PostMapping("/message")
+    public ResponseEntity<String> handleMessage(@RequestBody GroupMessageDTO message,@RequestHeader("Authorization") String authToken) throws ExecutionException, InterruptedException {
+        String uid;
+        if((uid = authService.verifyToken(authToken)) != null) {
+            if (groupService.isInGroup(uid, message.getGroupId())) {
+                messageService.saveMessage(message);
+                return ResponseEntity.ok("Message envoyé avec succès");
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Erreur durant l'envoi du message");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Erreur durant l'envoi du message");
         }
     }
 
-    @MessageMapping("/message")
-    public void handleMessage(@Payload  GroupMessageDTO message, SimpMessageHeaderAccessor headerAccessor) {
-        String uid = authService.verifyToken(headerAccessor.getFirstNativeHeader("Authorization"));
-        String groupId = headerAccessor.getFirstNativeHeader("GroupId");
-        if(uid != null && groupId != null && groupService.isInGroup(uid,groupId)) {
-            message.setGroupId(groupId);
-            message.setSender(uid);
-            messageService.saveMessage(groupId, message);
-            for(var username : getUsersForGid(groupId)) {
-                messagingTemplate.convertAndSendToUser(username,"/group/messages",message);
-            }
+    @Override
+    public void onNewMessage(GroupMessageDTO message) {
+        if(message != null) {
+            pusher.trigger(String.format("private-%s",message.getGroupId()),"new_messages",message);
         }
     }
 }

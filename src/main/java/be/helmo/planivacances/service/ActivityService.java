@@ -7,6 +7,7 @@ import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
 import net.fortuna.ical4j.model.Calendar;
 import net.fortuna.ical4j.model.DateTime;
@@ -16,9 +17,7 @@ import net.fortuna.ical4j.model.property.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 @Service
@@ -37,7 +36,7 @@ public class ActivityService {
         calendar.getProperties().add(CalScale.GREGORIAN);
         calendar.getProperties().add(Method.PUBLISH);
 
-        for(Activity a : getGroupActivities(gid)) {
+        for(Activity a : getGroupActivities(gid).values()) {
             VEvent event = new VEvent(new DateTime(a.getStartDate()), a.getTitle());
             event.getProperties().add(new Summary(a.getDescription()));
             event.getProperties().add(new Location(a.getPlaceAddress()));
@@ -54,7 +53,57 @@ public class ActivityService {
         return calendar.toString();
     }
 
-    public List<Activity> getGroupActivities(String gid) throws ExecutionException, InterruptedException {
+    public String createGroupActivity(String gid, ActivityDTO activity) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document();
+
+        ApiFuture<WriteResult> result = dr.set(activity);
+
+        result.get();
+
+        return dr.getId();
+    }
+
+    public boolean updateGroupActivity(String gid, String aid, ActivityDTO activity) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document(aid);
+
+        ApiFuture<WriteResult> result = dr.set(activity);
+
+        result.get();
+
+        return result.isDone();
+    }
+
+    public Activity getGroupActivity(String gid, String pid) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document(pid);
+
+        ActivityDTO activityDTO = dr.get().get().toObject(ActivityDTO.class);
+
+        Place place = placeService.getPlace(gid, activityDTO.getPlaceId());
+
+        if(place != null) {
+            return new Activity(activityDTO.getTitle(),
+                    activityDTO.getDescription(),
+                    activityDTO.getStartDate(),
+                    activityDTO.getDuration(),
+                    place);
+        }
+
+        return null;
+    }
+
+    public Map<String, Activity> getGroupActivities(String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         Iterable<DocumentReference> dr = fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
@@ -62,7 +111,7 @@ public class ActivityService {
                 .listDocuments();
         Iterator<DocumentReference> it = dr.iterator();
 
-        List<Activity> activityList = new ArrayList<>();
+        Map<String, Activity> activityMap = new HashMap<>();
 
         while(it.hasNext()) {
             DocumentReference tempDR = it.next();
@@ -74,7 +123,7 @@ public class ActivityService {
             Place place = placeService.getPlace(gid, activityDTO.getPlaceId());
 
             if(place != null) {
-                activityList.add(
+                activityMap.put(document.getId(),
                         new Activity(activityDTO.getTitle(),
                                 activityDTO.getDescription(),
                                 activityDTO.getStartDate(),
@@ -84,8 +133,16 @@ public class ActivityService {
             }
         }
 
-        return activityList;
+        return activityMap;
     }
 
+    public String deleteActivity(String gid, String aid) {
+        Firestore fdb = FirestoreClient.getFirestore();
+        fdb.collection(BASE_COLLECTION_NAME)
+                .document(gid)
+                .collection(ACTIVITY_COLLECTION_NAME)
+                .document(aid).delete();
+        return String.format("\"L'activité %s a bien été supprimé\"", aid);
+    }
 
 }

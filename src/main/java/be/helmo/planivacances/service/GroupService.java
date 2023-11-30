@@ -8,6 +8,7 @@ import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.Element;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -84,18 +85,32 @@ public class GroupService {
         return String.format("\"Le groupe %s a bien été supprimé\"", gid);
     }
 
-    public boolean isInGroup(String uid, String gid) {
+    public boolean isInGroup(String uid, String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
         Iterable<DocumentReference> drs = fdb.collection(USER_COLLECTION_NAME)
                 .document(uid)
                 .collection(GROUP_COLLECTION_NAME).listDocuments();
 
-        Iterator<DocumentReference> it = drs.iterator();
+        for (DocumentReference dr : drs) {
+            if(dr.getId().equals(gid)) {
 
-        while(it.hasNext()) {
-            if(it.next().getId().equals(gid)) {
-                return true;
+                ApiFuture<DocumentSnapshot> future = dr.get();
+                DocumentSnapshot documentSnapshot = future.get();
+
+                if (documentSnapshot.exists()) {
+                    // Assuming "accepted" is a boolean field in the document
+                    Boolean accepted = documentSnapshot.getBoolean("accepted");
+
+                    if (accepted != null && accepted) {
+                        return true;
+                    }
+                }
             }
+
+                /*ApiFuture<DocumentSnapshot> future = dr.get();
+            boolean accepted = Boolean.TRUE.equals(future.get().getBoolean("accepted"));
+            System.out.println(accepted);
+            return dr.getId().equals(gid) && accepted;*/
         }
 
         return false;
@@ -105,8 +120,8 @@ public class GroupService {
         Firestore fdb = FirestoreClient.getFirestore();
         DocumentReference groupDocRef = fdb.collection("groups").document(groupId);
 
-        fdb.runTransaction(transaction -> {
-            DocumentSnapshot groupSnapshot = (DocumentSnapshot) transaction.get(groupDocRef);
+        try {
+            DocumentSnapshot groupSnapshot = groupDocRef.get().get();
 
             if (groupSnapshot.exists()) {
                 Long currentCount = groupSnapshot.getLong("userCount");
@@ -116,26 +131,29 @@ public class GroupService {
 
                     // Ensure the count doesn't go below 0
                     if (newCount >= 0) {
-                        transaction.update(groupDocRef, "userCount", newCount);
-                        //return newCount;
+                        groupDocRef.update("userCount", newCount);
+                        System.out.println("User count updated successfully");
+                        return true;
                     } else {
+                        // Handle the case of an invalid user count
+                        System.err.println("Invalid user count: " + newCount);
                         return false;
-                        //throw new RuntimeException("Invalid user count: " + newCount);
                     }
                 } else {
+                    // Handle the case where the userCount field is not found
+                    System.err.println("userCount field not found in the group document");
                     return false;
-                    //throw new RuntimeException("userCount field not found in the group document");
                 }
             } else {
+                // Handle the case where the group is not found
+                System.err.println("Group not found");
                 return false;
-                //throw new RuntimeException("Group not found");
             }
-            return true;
-        });
-
-        System.out.println("User count updated successfully");
-
-        return true;
+        } catch (Exception e) {
+            // Handle exceptions
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

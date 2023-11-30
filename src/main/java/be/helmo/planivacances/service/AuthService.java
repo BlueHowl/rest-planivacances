@@ -24,7 +24,7 @@ public class AuthService {
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
         UserRecord userRecord = auth.createUser(request);
-
+        
         return auth.createCustomToken(userRecord.getUid());
     }
 

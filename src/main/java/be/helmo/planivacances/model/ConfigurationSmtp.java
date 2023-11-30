@@ -5,9 +5,12 @@ import javax.validation.constraints.NotNull;
 public class ConfigurationSmtp {
     @NotNull
     private String smtpHost;
+
     private int smtpPort;
+
     @NotNull
     private String smtpUsername;
+
     @NotNull
     private String smtpPassword;
 
@@ -18,6 +21,7 @@ public class ConfigurationSmtp {
     public int getSmtpPort() {
         return smtpPort;
     }
+
     public String getSmtpUsername() {
         return smtpUsername;
     }

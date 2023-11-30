@@ -10,16 +10,16 @@ import javax.validation.constraints.Size;
 public class Place {
     @NotBlank
     private String country;
-    @NotBlank
+
     private String city;
-    @NotBlank
+
     private String street;
-    @NotBlank
-    @Pattern(regexp = "^\\d+$", message = "Le numéro de boite est invalide")
+
+    @Pattern(regexp = "^\\d*$", message = "Le numéro de boite est invalide")
     private String number;
-    @NotBlank
+
     @Size(min = 4, message = "Le code postal doit comprendre au moins 4 chiffres")
-    @Pattern(regexp = "^\\d{4,}$", message = "Le code postal est invalide")
+    @Pattern(regexp = "^\\d*$", message = "Le code postal est invalide")
     private String postalCode;
 
     @NotBlank

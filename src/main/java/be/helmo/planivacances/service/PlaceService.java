@@ -2,10 +2,7 @@ package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.Place;
 import com.google.api.core.ApiFuture;
-import com.google.cloud.firestore.DocumentReference;
-import com.google.cloud.firestore.DocumentSnapshot;
-import com.google.cloud.firestore.Firestore;
-import com.google.cloud.firestore.WriteResult;
+import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.stereotype.Service;
 
@@ -20,21 +17,55 @@ public class PlaceService {
     private static final String BASE_COLLECTION_NAME = "groups";
     private static final String PLACE_COLLECTION_NAME = "places";
 
-    public String createPlace(String gid, Place place) throws ExecutionException, InterruptedException {
+    public String createOrGetPlace(String gid, Place place) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
-        DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+        // Check if a place with the same details already exists
+        String existingPlaceId = findExistingPlaceId(gid, place);
+
+        if (existingPlaceId != null) {
+            // A place with the same details already exists, return its document ID
+            return existingPlaceId;
+        } else {
+            // Create a new place document
+            DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
+                    .document(gid)
+                    .collection(PLACE_COLLECTION_NAME)
+                    .document();
+
+            ApiFuture<WriteResult> result = dr.set(place);
+
+            // Block until the document is written (optional)
+            result.get();
+
+            return dr.getId();
+        }
+    }
+
+    private String findExistingPlaceId(String gid, Place place) throws ExecutionException, InterruptedException {
+        Firestore fdb = FirestoreClient.getFirestore();
+
+        // Query to find a place with the same details
+        Query query = fdb.collection(BASE_COLLECTION_NAME)
                 .document(gid)
                 .collection(PLACE_COLLECTION_NAME)
-                .document();
+                .whereEqualTo("street", place.getStreet())
+                .whereEqualTo("number", place.getNumber())
+                .whereEqualTo("city", place.getCity())
+                .whereEqualTo("country", place.getCountry())
+                .whereEqualTo("postalcode", place.getPostalCode());
 
-        ApiFuture<WriteResult> result = dr.set(place);
+        ApiFuture<QuerySnapshot> querySnapshot = query.get();
 
-        // Block until the document is written (optional)
-        result.get();
+        for (QueryDocumentSnapshot document : querySnapshot.get().getDocuments()) {
+            // Return the document ID of the existing place
+            return document.getId();
+        }
 
-        return dr.getId();
+        // No existing place found
+        return null;
     }
+
 
     public Place getPlace(String gid, String pid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();

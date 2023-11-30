@@ -61,8 +61,8 @@ public class GroupController {
     }
 
     @PutMapping("/{gid}")
-    public String updateGroup(@RequestBody GroupDTO group,
-                              @PathVariable("gid") String gid) throws ResponseStatusException {
+    public String updateGroup(@PathVariable("gid") String gid,
+                              @RequestBody GroupDTO group) throws ResponseStatusException {
 
         try {
             return groupServices.updateGroup(gid, group);
@@ -73,7 +73,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/{gid}")
-    public String deleteGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
+    public String deleteGroup(@PathVariable("gid") String gid) {
         return groupServices.deleteGroup(gid);
     }
 }

@@ -25,13 +25,12 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Service
 public class UserService {
-    private final Set<SseEmitter> emitters = new HashSet<SseEmitter>();
+    private final Set<SseEmitter> emitters = new HashSet<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -90,15 +89,39 @@ public class UserService {
     }
 
     public Map<String, Integer> getUserCountPerCountry(String givenDate) throws ExecutionException, InterruptedException, ParseException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
-        Date date = dateFormat.parse(givenDate);
-
         // Map to store counts per country
         Map<String, Integer> countryCounts = new HashMap<>();
 
         Firestore fdb = FirestoreClient.getFirestore();
         CollectionReference groupsCollection = fdb.collection("groups");
+
+        Set<String> validGroupIds = getGroupsForGivenDate(groupsCollection, givenDate);
+
+        for (String groupId : validGroupIds) {
+            ApiFuture<DocumentSnapshot> groupDocument = groupsCollection
+                    .document(groupId)
+                    .get(FieldMask.of("userCount"));
+
+            if (groupDocument.get().exists()) {
+                int userCount = Math.toIntExact(groupDocument.get().getLong("userCount"));
+
+                // Step 4: Retrieve Country Information from the Group
+                String country = getCountryForGroupId(groupsCollection, groupId);
+
+                // Step 5: Aggregate Users per Country within Groups
+                int currentCount = countryCounts.getOrDefault(country, 0);
+                countryCounts.put(country, currentCount + userCount);
+            }
+        }
+
+        return countryCounts;
+
+    }
+
+    private Set<String> getGroupsForGivenDate(CollectionReference groupsCollection, String givenDate) throws ParseException, ExecutionException, InterruptedException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+        Date date = dateFormat.parse(givenDate);
 
         // Step 1: Retrieve Group IDs where startDate is less than or equal to the given date
         QuerySnapshot startDatesSnapshot = groupsCollection
@@ -125,25 +148,7 @@ public class UserService {
         Set<String> validGroupIds = new HashSet<>(startGroupIds);
         validGroupIds.retainAll(endGroupIds);
 
-        for (String groupId : validGroupIds) {
-            ApiFuture<DocumentSnapshot> groupDocument = groupsCollection
-                    .document(groupId)
-                    .get(FieldMask.of("userCount"));
-
-            if (groupDocument.get().exists()) {
-                int userCount = Math.toIntExact(groupDocument.get().getLong("userCount"));
-
-                // Step 4: Retrieve Country Information from the Group
-                String country = getCountryForGroupId(groupsCollection, groupId);
-
-                // Step 5: Aggregate Users per Country within Groups
-                int currentCount = countryCounts.getOrDefault(country, 0);
-                countryCounts.put(country, currentCount + userCount);
-            }
-        }
-
-        return countryCounts;
-
+        return  validGroupIds;
     }
 
     // Helper method to retrieve the country for a given groupId
@@ -176,6 +181,16 @@ public class UserService {
         return adminUsers;
     }
 
+    public String findUserUidByEmail(String email) throws FirebaseAuthException {
+        UserRecord userRecord = FirebaseAuth.getInstance().getUserByEmail(email);
+        return userRecord.getUid();
+    }
+
+    public User getUser(String uid) throws FirebaseAuthException {
+        UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
+        return new User(userRecord.getUid(),userRecord.getEmail(),userRecord.getDisplayName());
+    }
+
     public void contactAdmin(FormContactDTO form) {
         try {
             Resource resource = new ClassPathResource("smtp.json");
@@ -206,10 +221,5 @@ public class UserService {
             exception.printStackTrace();
             System.err.println("Erreur : " + exception.getMessage());
         }
-    }
-
-    public User getUser(String uid) throws FirebaseAuthException {
-        UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
-        return new User(userRecord.getUid(),userRecord.getEmail(),userRecord.getDisplayName());
     }
 }
