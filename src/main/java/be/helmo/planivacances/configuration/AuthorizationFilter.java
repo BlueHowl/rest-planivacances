@@ -27,8 +27,6 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             "/api/users/number",
             "/api/users/number/flux",
             "/api/users/admin/message",
-            "/api/chat/message",
-            "/api/chat/messages",
             "/api/users/country/{variable}"
     };
 
@@ -82,12 +80,15 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
 
         //filter access and define forbidden actions
         if(doRequestContains(request, verifyIsInGroupEndpoints)) {
-            String gid = (String) request.getAttribute("gid");
+            if(!request.getRequestURI().contains("/group/list")) {
 
-            if(!groupServices.isInGroup(uid, gid)) {
-                response.setStatus(HttpStatus.FORBIDDEN.value());
-                response.getWriter().write("Forbidden: L'utilisateur n'a pas accès au groupe");
-                return;
+                String gid = (String) request.getAttribute("gid");
+
+                if (!groupServices.isInGroup(uid, gid)) {
+                    response.setStatus(HttpStatus.FORBIDDEN.value());
+                    response.getWriter().write("Forbidden: L'utilisateur n'a pas accès au groupe");
+                    return;
+                }
             }
         }
 
