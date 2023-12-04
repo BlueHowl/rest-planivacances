@@ -60,7 +60,7 @@ public class MessageController implements MessageListener {
         }
     }
 
-    @PostMapping("/messages") //TODO prblm gid ?!
+    @PostMapping("/messages")
     public ResponseEntity<List<GroupMessageDTO>> sendPreviousMessages(@RequestHeader("Authorization") String authToken, @RequestHeader("GID") String gid) {
         String uid;
         if((uid = authService.verifyToken(authToken)) != null) {
