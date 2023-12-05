@@ -15,6 +15,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @Order(2)
@@ -27,16 +29,19 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             "/api/users/number",
             "/api/users/number/flux",
             "/api/users/admin/message",
-            "/api/users/country/{variable}"
+            "/api/users/country/.+"
     };
 
     private final String[] verifyIsInGroupEndpoints = {
-            "/api/activity/{variable}",
-            "/api/activity/{variable}/{variable}",
-            "/api/group/{variable}",
-            "/api/group/invitation/{variable}/{variable}",
-            "/api/place/{variable}",
-            "/api/place/{variable}/{variable}"
+            "/api/activity/calendar/(.+)",
+            "/api/activity/(.+)/.+",
+            "/api/activity/(.+)",
+            "/api/group/invitation/(.+)/.+",
+            "/api/group/invitation/(.+)",
+            "/api/group/(.+)",
+            "/api/place/list/(.+)",
+            "/api/place/(.+)/.+",
+            "/api/place/(.+)",
     };
 
 
@@ -58,7 +63,7 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         }
 
         //filter endpoints with non-needed authorization
-        if (doRequestContains(request, excludedEndpoints)) {
+        if (doRequestContains(request, excludedEndpoints) != null) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -78,12 +83,16 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
             return;
         }
 
+        String endpointFound;
         //filter access and define forbidden actions
-        if(doRequestContains(request, verifyIsInGroupEndpoints)) {
+        if((endpointFound = doRequestContains(request, verifyIsInGroupEndpoints)) != null) {
             if(!request.getRequestURI().contains("/group/list")) {
-
-                String gid = (String) request.getAttribute("gid");
-
+                Pattern p = Pattern.compile(endpointFound);
+                Matcher m = p.matcher(request.getRequestURI());
+                String gid = null;
+                if(m.matches()) {
+                    gid = m.group(1);
+                }
                 if (!groupServices.isInGroup(uid, gid)) {
                     response.setStatus(HttpStatus.FORBIDDEN.value());
                     response.getWriter().write("Forbidden: L'utilisateur n'a pas accès au groupe");
@@ -101,19 +110,19 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
     /**
      * Check if the request uri is in the list provided
      * @param request (ServletRequest)
-     * @param list (String[]) list of endpoints
+     * @param endpoints (String[]) list of endpoints
      * @return (true) if the list contains the uri of the request
      */
-    private boolean doRequestContains(ServletRequest request, String[] list) {
+    private String doRequestContains(ServletRequest request, String[] endpoints) {
         String uri = ((javax.servlet.http.HttpServletRequest) request).getRequestURI();
 
         // Check if the URI matches any excluded pattern
-        for (String excludedEndpoint : list) {//".+" +
-            if (uri.startsWith(excludedEndpoint) || uri.matches( excludedEndpoint.replace("{variable}", "[^/]+"))) {
-                return true;
+        for (String endpoint : endpoints) {//".+" +
+            if (uri.equals(endpoint) || uri.matches(endpoint)) {
+                return endpoint;
             }
         }
 
-        return false;
+        return null;
     }
 }
