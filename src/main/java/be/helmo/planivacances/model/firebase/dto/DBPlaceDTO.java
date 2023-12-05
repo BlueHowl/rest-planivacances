@@ -36,7 +36,7 @@ public class DBPlaceDTO {
         this.country = p.getCountry();
         this.city = p.getCity();
         this.street = p.getStreet();
-        this.street = p.getNumber();
+        this.number = p.getNumber();
         this.postalCode = p.getPostalCode();
         this.lat = p.getLat();
         this.lon = p.getLon();
