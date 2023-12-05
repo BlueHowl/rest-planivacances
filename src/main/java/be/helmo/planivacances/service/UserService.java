@@ -1,7 +1,7 @@
 package be.helmo.planivacances.service;
 
 import be.helmo.planivacances.model.ConfigurationSmtp;
-import be.helmo.planivacances.model.User;
+import be.helmo.planivacances.model.dto.UserDTO;
 import be.helmo.planivacances.model.dto.FormContactDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.core.ApiFuture;
@@ -37,7 +37,7 @@ public class UserService {
      * Récupère le nombre d'utilisateurs de PlaniVacances
      *
      * @return (int) Nombre d'utilisateurs de PlaniVacances
-     * @throws FirebaseAuthException
+     * @throws FirebaseAuthException Exception Firebase
      */
     private int getNumberOfUsers() throws FirebaseAuthException {
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -45,7 +45,7 @@ public class UserService {
 
         int userCount = 0;
         while (userPage != null) {
-            for (UserRecord user : userPage.getValues()) {
+            for (UserRecord ignored : userPage.getValues()) {
                 userCount++;
             }
             userPage = userPage.getNextPage();
@@ -186,9 +186,9 @@ public class UserService {
         return userRecord.getUid();
     }
 
-    public User getUser(String uid) throws FirebaseAuthException {
+    public UserDTO getUser(String uid) throws FirebaseAuthException {
         UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
-        return new User(userRecord.getUid(),userRecord.getEmail(),userRecord.getDisplayName());
+        return new UserDTO(userRecord.getUid(),userRecord.getEmail(),userRecord.getDisplayName());
     }
 
     public void contactAdmin(FormContactDTO form) {

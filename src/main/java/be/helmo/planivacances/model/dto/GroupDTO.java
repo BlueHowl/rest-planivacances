@@ -1,9 +1,7 @@
 package be.helmo.planivacances.model.dto;
 
-import be.helmo.planivacances.model.Group;
-import be.helmo.planivacances.model.Place;
+import be.helmo.planivacances.model.firebase.dto.DBGroupDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.google.cloud.firestore.annotation.Exclude;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -14,7 +12,6 @@ import java.util.Date;
 @Data
 public class GroupDTO {
 
-    @Exclude
     private String gid;
     @NotBlank
     @Size(min = 3, message = "Le nom du groupe de vacances doit faire minimum 3 caractères")
@@ -27,28 +24,12 @@ public class GroupDTO {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date endDate;
     @NotNull
-    private Place place;
+    private PlaceDTO place;
     private String owner;
 
     public GroupDTO() {}
 
-    public GroupDTO(String gid,
-                 String groupName,
-                 String description,
-                 Date startDate,
-                 Date endDate,
-                 Place place,
-                 String owner) {
-        this.gid = gid;
-        this.groupName = groupName;
-        this.description = description;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.place = place;
-        this.owner = owner;
-    }
-
-    public GroupDTO(Group g, String gid) {
+    public GroupDTO(DBGroupDTO g, String gid) {
         this.gid = gid;
         this.groupName = g.getGroupName();
         this.description = g.getDescription();
@@ -79,7 +60,7 @@ public class GroupDTO {
         return endDate;
     }
 
-    public Place getPlace() {
+    public PlaceDTO getPlace() {
         return place;
     }
 
@@ -109,7 +90,7 @@ public class GroupDTO {
         this.endDate = endDate;
     }
 
-    public void setPlace(Place place) {
+    public void setPlace(PlaceDTO place) {
         this.place = place;
     }
 

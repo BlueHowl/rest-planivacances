@@ -7,8 +7,6 @@ import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.swing.text.Element;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -45,7 +43,7 @@ public class GroupService {
 
         DocumentSnapshot document = future.get();
 
-        return document.exists() ? document.toObject(GroupDTO.class) : null;
+        return document.exists() ? new GroupDTO(document.toObject(DBGroupDTO.class), document.getId()) : null;
     }
 
     public List<GroupDTO> getGroups(String uid) throws ExecutionException, InterruptedException {
@@ -60,7 +58,7 @@ public class GroupService {
             ApiFuture<DocumentSnapshot> future = tempDR.get();
             DocumentSnapshot document = future.get();
 
-            GroupDTO group = document.toObject(GroupDTO.class);
+            GroupDTO group = new GroupDTO(document.toObject(DBGroupDTO.class), document.getId());
             String gid = document.getId();
 
             if(document.exists() && isInGroup(uid, gid)) {
@@ -74,7 +72,9 @@ public class GroupService {
 
     public String updateGroup(String gid, GroupDTO group) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
-        ApiFuture<WriteResult> cApiFuture = fdb.collection(GROUP_COLLECTION_NAME).document(gid).set(group);
+        ApiFuture<WriteResult> cApiFuture = fdb.collection(GROUP_COLLECTION_NAME)
+                                               .document(gid)
+                                               .set(new DBGroupDTO(group));
 
         return String.format("\"Groupe modifié le %s\"", cApiFuture.get().getUpdateTime().toDate()); //todo formattage manuel autorisé?
     }

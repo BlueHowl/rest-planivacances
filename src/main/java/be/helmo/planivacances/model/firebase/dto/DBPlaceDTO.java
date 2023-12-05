@@ -1,5 +1,6 @@
-package be.helmo.planivacances.model;
+package be.helmo.planivacances.model.firebase.dto;
 
+import be.helmo.planivacances.model.dto.PlaceDTO;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -7,7 +8,8 @@ import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
-public class Place {
+public class DBPlaceDTO {
+
     @NotBlank
     private String country;
 
@@ -28,8 +30,19 @@ public class Place {
     private double lon;
 
 
-    //getters
+    public DBPlaceDTO() {}
 
+    public DBPlaceDTO(PlaceDTO p) {
+        this.country = p.getCountry();
+        this.city = p.getCity();
+        this.street = p.getStreet();
+        this.street = p.getNumber();
+        this.postalCode = p.getPostalCode();
+        this.lat = p.getLat();
+        this.lon = p.getLon();
+    }
+
+    //getters
 
     public String getCountry() {
         return country;
@@ -59,13 +72,8 @@ public class Place {
         return lon;
     }
 
-    public String getAddress() {
-        return String.format("%s, %s, %s %s, %s", getStreet(), getNumber(), getCity(), getPostalCode(), getCountry());
-    }
-
 
     //setters
-
 
     public void setCountry(String country) {
         this.country = country;
