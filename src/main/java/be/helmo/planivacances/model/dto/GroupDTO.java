@@ -35,7 +35,7 @@ public class GroupDTO {
         this.description = g.getDescription();
         this.startDate = g.getStartDate();
         this.endDate = g.getEndDate();
-        this.place = null;
+        this.place = new PlaceDTO(g.getPlace());
         this.owner = g.getOwner();
     }
 

@@ -24,7 +24,7 @@ public class DBGroupDTO {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date endDate;
     @NotNull
-    private PlaceDTO place;
+    private DBPlaceDTO place;
     private String owner;
 
     private int userCount = 1;
@@ -36,7 +36,7 @@ public class DBGroupDTO {
         this.description = g.getDescription();
         this.startDate = g.getStartDate();
         this.endDate = g.getEndDate();
-        this.place = g.getPlace();
+        this.place = new DBPlaceDTO(g.getPlace());
         this.owner = g.getOwner();
     }
 
@@ -57,7 +57,7 @@ public class DBGroupDTO {
         return endDate;
     }
 
-    public PlaceDTO getPlace() {
+    public DBPlaceDTO getPlace() {
         return place;
     }
 
@@ -86,7 +86,7 @@ public class DBGroupDTO {
         this.endDate = endDate;
     }
 
-    public void setPlace(PlaceDTO place) {
+    public void setPlace(DBPlaceDTO place) {
         this.place = place;
     }
 
