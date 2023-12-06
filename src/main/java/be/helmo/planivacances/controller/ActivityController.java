@@ -116,7 +116,7 @@ public class ActivityController {
         return activityServices.deleteActivity(gid, aid);
     }
 
-    @GetMapping("/calendar/{gid}")
+    @GetMapping(value = "/calendar/{gid}",produces = "text/calendar")
     public String exportCalendar(@PathVariable("gid") String gid)
             throws ResponseStatusException {
 

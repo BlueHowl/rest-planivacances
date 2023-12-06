@@ -9,10 +9,11 @@ import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import com.google.cloud.firestore.WriteResult;
 import com.google.firebase.cloud.FirestoreClient;
+import net.fortuna.ical4j.model.*;
 import net.fortuna.ical4j.model.Calendar;
-import net.fortuna.ical4j.model.DateTime;
-import net.fortuna.ical4j.model.Dur;
+import net.fortuna.ical4j.model.TimeZone;
 import net.fortuna.ical4j.model.component.VEvent;
+import net.fortuna.ical4j.model.component.VTimeZone;
 import net.fortuna.ical4j.model.property.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,14 +38,18 @@ public class ActivityService {
         calendar.getProperties().add(Method.PUBLISH);
 
         for(ActivityDTO a : getGroupActivities(gid).values()) {
-            VEvent event = new VEvent(new DateTime(a.getStartDate()), a.getTitle());
-            event.getProperties().add(new Summary(a.getDescription()));
+            DateTime startDateTime = new DateTime(a.getStartDate());
+
+            VEvent event = new VEvent(startDateTime, a.getTitle());
+
+            event.getProperties().add(new Description(a.getDescription()));
             event.getProperties().add(new Location(a.getPlaceAddress()));
 
             Dur dur = new Dur(0, 0, 0, a.getDuration());
             event.getProperties().add(new Duration(dur));
 
             DateTime endDateTime = new DateTime(a.getStartDate().getTime() + a.getDuration());
+
             event.getProperties().add(new DtEnd(endDateTime));
 
             calendar.getComponents().add(event);
