@@ -32,7 +32,7 @@ public class ActivityService {
 
     public String exportCalendar(String gid) throws ExecutionException, InterruptedException {
         Calendar calendar = new Calendar();
-        calendar.getProperties().add(new ProdId("-//Planivacances-{groupName}//iCal4j 3.0.26//FR"));
+        calendar.getProperties().add(new ProdId("-//Planivacances//iCal4j 3.0.26//FR"));
         calendar.getProperties().add(Version.VERSION_2_0);
         calendar.getProperties().add(CalScale.GREGORIAN);
         calendar.getProperties().add(Method.PUBLISH);
