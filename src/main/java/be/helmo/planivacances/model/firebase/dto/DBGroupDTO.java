@@ -1,6 +1,5 @@
 package be.helmo.planivacances.model.firebase.dto;
 
-import be.helmo.planivacances.model.dto.PlaceDTO;
 import be.helmo.planivacances.model.dto.GroupDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;

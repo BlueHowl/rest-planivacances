@@ -69,7 +69,7 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         }
 
         String authorizationHeader = request.getHeader("Authorization");
-        String uid = null;
+        String uid;
 
         if (authorizationHeader == null || authorizationHeader.isEmpty()) {
             // Authorization header is not present, return 401 Unauthorized
@@ -86,7 +86,8 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
         String endpointFound;
         //filter access and define forbidden actions
         if((endpointFound = doRequestContains(request, verifyIsInGroupEndpoints)) != null) {
-            if(!request.getRequestURI().contains("/group/list")) {
+            if(!request.getRequestURI().contains("/group/list") &&
+                !request.getRequestURI().contains("/group/invitation")) {
                 Pattern p = Pattern.compile(endpointFound);
                 Matcher m = p.matcher(request.getRequestURI());
                 String gid = null;
@@ -95,7 +96,7 @@ public class AuthorizationFilter extends OncePerRequestFilter implements WebMvcC
                 }
                 if (!groupServices.isInGroup(uid, gid)) {
                     response.setStatus(HttpStatus.FORBIDDEN.value());
-                    response.getWriter().write("Forbidden: L'utilisateur n'a pas accès au groupe");
+                    response.getWriter().write("Forbidden: L'utilisateur n'a pas accès");
                     return;
                 }
             }
