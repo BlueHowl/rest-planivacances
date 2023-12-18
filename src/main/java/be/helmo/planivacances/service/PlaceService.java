@@ -1,6 +1,7 @@
 package be.helmo.planivacances.service;
 
-import be.helmo.planivacances.model.Place;
+import be.helmo.planivacances.model.dto.PlaceDTO;
+import be.helmo.planivacances.model.firebase.dto.DBPlaceDTO;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
@@ -17,11 +18,13 @@ public class PlaceService {
     private static final String BASE_COLLECTION_NAME = "groups";
     private static final String PLACE_COLLECTION_NAME = "places";
 
-    public String createOrGetPlace(String gid, Place place) throws ExecutionException, InterruptedException {
+    public String createOrGetPlace(String gid, PlaceDTO place) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
+        DBPlaceDTO dbPlace = new DBPlaceDTO(place);
+
         // Check if a place with the same details already exists
-        String existingPlaceId = findExistingPlaceId(gid, place);
+        String existingPlaceId = findExistingPlaceId(gid, dbPlace);
 
         if (existingPlaceId != null) {
             // A place with the same details already exists, return its document ID
@@ -33,7 +36,7 @@ public class PlaceService {
                     .collection(PLACE_COLLECTION_NAME)
                     .document();
 
-            ApiFuture<WriteResult> result = dr.set(place);
+            ApiFuture<WriteResult> result = dr.set(dbPlace);
 
             // Block until the document is written (optional)
             result.get();
@@ -42,7 +45,7 @@ public class PlaceService {
         }
     }
 
-    private String findExistingPlaceId(String gid, Place place) throws ExecutionException, InterruptedException {
+    private String findExistingPlaceId(String gid, DBPlaceDTO place) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
         // Query to find a place with the same details
@@ -67,7 +70,7 @@ public class PlaceService {
     }
 
 
-    public Place getPlace(String gid, String pid) throws ExecutionException, InterruptedException {
+    public PlaceDTO getPlace(String gid, String pid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
         DocumentReference dr = fdb.collection(BASE_COLLECTION_NAME)
@@ -78,10 +81,10 @@ public class PlaceService {
 
         DocumentSnapshot document = future.get();
 
-        return document.exists() ? document.toObject(Place.class) : null;
+        return document.exists() ? new PlaceDTO(document.toObject(DBPlaceDTO.class)) : null;
     }
 
-    public List<Place> getGroupPlaces(String gid) throws ExecutionException, InterruptedException {
+    public List<PlaceDTO> getGroupPlaces(String gid) throws ExecutionException, InterruptedException {
         Firestore fdb = FirestoreClient.getFirestore();
 
         Iterable<DocumentReference> dr = fdb.collection(BASE_COLLECTION_NAME)
@@ -91,14 +94,14 @@ public class PlaceService {
 
         Iterator<DocumentReference> it = dr.iterator();
 
-        List<Place> groupList = new ArrayList<>();
+        List<PlaceDTO> groupList = new ArrayList<>();
 
         while(it.hasNext()) {
             DocumentReference tempDR = it.next();
             ApiFuture<DocumentSnapshot> future = tempDR.get();
             DocumentSnapshot document = future.get();
 
-            groupList.add(document.toObject(Place.class));
+            groupList.add(new PlaceDTO(document.toObject(DBPlaceDTO.class)));
         }
 
         return groupList;

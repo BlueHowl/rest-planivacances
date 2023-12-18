@@ -1,6 +1,6 @@
 package be.helmo.planivacances.controller;
 
-import be.helmo.planivacances.model.Place;
+import be.helmo.planivacances.model.dto.PlaceDTO;
 import be.helmo.planivacances.service.PlaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ public class PlaceController {
 
     @PostMapping("/{gid}")
     public String createPlace(
-            @RequestBody Place place,
+            @RequestBody PlaceDTO place,
             @PathVariable("gid") String gid)
             throws ResponseStatusException {
 
@@ -32,7 +32,7 @@ public class PlaceController {
     }
 
     @GetMapping("/{gid}/{pid}")
-    public Place getGroupPlace(
+    public PlaceDTO getGroupPlace(
             @PathVariable("gid") String gid,
             @PathVariable("pid") String pid)
             throws ResponseStatusException {
@@ -46,7 +46,7 @@ public class PlaceController {
     }
 
     @GetMapping("/list/{gid}")
-    public List<Place> getPlaces(
+    public List<PlaceDTO> getPlaces(
             @PathVariable("gid") String gid)
             throws ResponseStatusException {
 

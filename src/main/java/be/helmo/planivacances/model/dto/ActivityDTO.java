@@ -2,13 +2,13 @@ package be.helmo.planivacances.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
 public class ActivityDTO {
-    @NotBlank
+
+    @NotNull
     @Size(min = 3, message = "Le nom de l'activité doit faire minimum 3 caractères")
     private String title;
     private String description;
@@ -17,18 +17,17 @@ public class ActivityDTO {
     private Date startDate;
     @NotNull
     private int duration;
-    @NotBlank
-    private String placeId;
+    @NotNull
+    private PlaceDTO place;
 
-    public ActivityDTO() {}
-
-    public ActivityDTO(String title, String description, Date startDate, int duration, String placeId) {
+    public ActivityDTO(String title, String description, Date startDate, int duration, PlaceDTO place) {
         this.title = title;
         this.description = description;
         this.startDate = startDate;
         this.duration = duration;
-        this.placeId = placeId;
+        this.place = place;
     }
+
 
     //getters
 
@@ -48,8 +47,12 @@ public class ActivityDTO {
         return duration;
     }
 
-    public String getPlaceId() {
-        return placeId;
+    public PlaceDTO getPlace() {
+        return place;
+    }
+
+    public String getPlaceAddress() {
+        return place.getAddress();
     }
 
 
@@ -71,8 +74,7 @@ public class ActivityDTO {
         this.duration = duration;
     }
 
-    public void setPlaceId(String placeId) {
-        this.placeId = placeId;
+    public void setPlace(PlaceDTO place) {
+        this.place = place;
     }
-
 }

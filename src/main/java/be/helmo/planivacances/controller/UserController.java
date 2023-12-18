@@ -1,6 +1,6 @@
 package be.helmo.planivacances.controller;
 
-import be.helmo.planivacances.model.User;
+import be.helmo.planivacances.model.dto.UserDTO;
 import be.helmo.planivacances.model.dto.FormContactDTO;
 import be.helmo.planivacances.service.FcmService;
 import com.google.firebase.auth.FirebaseAuthException;
@@ -43,7 +43,7 @@ public class UserController {
     }
 
     @GetMapping
-    public User getUserDetails(HttpServletRequest request) {
+    public UserDTO getUserDetails(HttpServletRequest request) {
         String uid = (String) request.getAttribute("uid");
         try {
             return userServices.getUser(uid);

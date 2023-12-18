@@ -1,14 +1,14 @@
-package be.helmo.planivacances.model;
+package be.helmo.planivacances.model.firebase.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Date;
 
-public class Activity {
-
-    @NotNull
+public class DBActivityDTO {
+    @NotBlank
     @Size(min = 3, message = "Le nom de l'activité doit faire minimum 3 caractères")
     private String title;
     private String description;
@@ -17,17 +17,18 @@ public class Activity {
     private Date startDate;
     @NotNull
     private int duration;
-    @NotNull
-    private Place place;
+    @NotBlank
+    private String placeId;
 
-    public Activity(String title, String description, Date startDate, int duration, Place place) {
+    public DBActivityDTO() {}
+
+    public DBActivityDTO(String title, String description, Date startDate, int duration, String placeId) {
         this.title = title;
         this.description = description;
         this.startDate = startDate;
         this.duration = duration;
-        this.place = place;
+        this.placeId = placeId;
     }
-
 
     //getters
 
@@ -47,12 +48,8 @@ public class Activity {
         return duration;
     }
 
-    public Place getPlace() {
-        return place;
-    }
-
-    public String getPlaceAddress() {
-        return place.getAddress();
+    public String getPlaceId() {
+        return placeId;
     }
 
 
@@ -74,7 +71,8 @@ public class Activity {
         this.duration = duration;
     }
 
-    public void setPlace(Place place) {
-        this.place = place;
+    public void setPlaceId(String placeId) {
+        this.placeId = placeId;
     }
+
 }

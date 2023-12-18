@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @Controller
 @DependsOn("messageService")
@@ -45,7 +44,9 @@ public class MessageController implements MessageListener {
     }
 
     @PostMapping("/")
-    public ResponseEntity<String> authenticate(@RequestParam("socket_id") String socketId, @RequestParam("channel_name") String channelName, @RequestHeader("Authorization") String authToken) throws ExecutionException, InterruptedException {
+    public ResponseEntity<String> authenticate(@RequestParam("socket_id") String socketId,
+                                               @RequestParam("channel_name") String channelName,
+                                               @RequestHeader("Authorization") String authToken) {
         String uid;
         String gid = channelName.replaceAll("private-","");
         if((uid = authService.verifyToken(authToken)) != null) {
@@ -61,7 +62,8 @@ public class MessageController implements MessageListener {
     }
 
     @PostMapping("/messages")
-    public ResponseEntity<List<GroupMessageDTO>> sendPreviousMessages(@RequestHeader("Authorization") String authToken, @RequestHeader("GID") String gid) throws ExecutionException, InterruptedException {
+    public ResponseEntity<List<GroupMessageDTO>> sendPreviousMessages(@RequestHeader("Authorization") String authToken,
+                                                                      @RequestHeader("GID") String gid) {
         String uid;
         if((uid = authService.verifyToken(authToken)) != null) {
             if(groupService.isInGroup(uid,gid)) {
@@ -76,7 +78,8 @@ public class MessageController implements MessageListener {
     }
 
     @PostMapping("/message")
-    public ResponseEntity<String> handleMessage(@RequestBody GroupMessageDTO message,@RequestHeader("Authorization") String authToken) throws ExecutionException, InterruptedException {
+    public ResponseEntity<String> handleMessage(@RequestBody GroupMessageDTO message,
+                                                @RequestHeader("Authorization") String authToken) {
         String uid;
         if((uid = authService.verifyToken(authToken)) != null) {
             if (groupService.isInGroup(uid, message.getGroupId())) {

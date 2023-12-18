@@ -1,7 +1,7 @@
 package be.helmo.planivacances.controller;
 
-import be.helmo.planivacances.model.Activity;
 import be.helmo.planivacances.model.dto.ActivityDTO;
+import be.helmo.planivacances.model.firebase.dto.DBActivityDTO;
 import be.helmo.planivacances.model.dto.GroupDTO;
 import be.helmo.planivacances.service.ActivityService;
 import be.helmo.planivacances.service.FcmService;
@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -34,12 +33,12 @@ public class ActivityController {
     private FcmService fcmServices;
 
     @PostMapping("/{gid}")
-    public String createActivity(@PathVariable("gid") String gid, @RequestBody Activity activity) {
+    public String createActivity(@PathVariable("gid") String gid, @RequestBody ActivityDTO activity) {
 
         try {
             String pid = placeServices.createOrGetPlace(gid, activity.getPlace());
 
-            ActivityDTO activityDTO = new ActivityDTO(
+            DBActivityDTO activityDTO = new DBActivityDTO(
                     activity.getTitle(),
                     activity.getDescription(),
                     activity.getStartDate(),
@@ -63,12 +62,12 @@ public class ActivityController {
     @PutMapping("/{gid}/{aid}")
     public boolean updateGroupActivity(@PathVariable("gid") String gid,
                                       @PathVariable("aid") String aid,
-                                      @RequestBody Activity activity) {
+                                      @RequestBody ActivityDTO activity) {
 
         try {
             String pid = placeServices.createOrGetPlace(gid, activity.getPlace());
 
-            ActivityDTO activityDTO = new ActivityDTO(
+            DBActivityDTO activityDTO = new DBActivityDTO(
                     activity.getTitle(),
                     activity.getDescription(),
                     activity.getStartDate(),
@@ -83,11 +82,11 @@ public class ActivityController {
     }
 
     @GetMapping("/{gid}/{aid}")
-    public Activity getGroupActivity(@PathVariable("gid") String gid, @PathVariable("aid") String aid)
+    public ActivityDTO getGroupActivity(@PathVariable("gid") String gid, @PathVariable("aid") String aid)
             throws ResponseStatusException {
 
         try {
-            Activity activity = activityServices.getGroupActivity(gid, aid);
+            ActivityDTO activity = activityServices.getGroupActivity(gid, aid);
             if(activity != null) {
                 return activity;
             } else throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
@@ -100,7 +99,7 @@ public class ActivityController {
     }
 
     @GetMapping("/{gid}")
-    public Map<String, Activity> getGroupActivities(@PathVariable("gid") String gid)
+    public Map<String, ActivityDTO> getGroupActivities(@PathVariable("gid") String gid)
             throws ResponseStatusException {
 
         try {
@@ -117,7 +116,7 @@ public class ActivityController {
         return activityServices.deleteActivity(gid, aid);
     }
 
-    @GetMapping("/calendar/{gid}")
+    @GetMapping(value = "/calendar/{gid}",produces = "text/calendar")
     public String exportCalendar(@PathVariable("gid") String gid)
             throws ResponseStatusException {
 

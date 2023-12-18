@@ -1,6 +1,5 @@
 package be.helmo.planivacances.model.firebase.dto;
 
-import be.helmo.planivacances.model.Place;
 import be.helmo.planivacances.model.dto.GroupDTO;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -24,34 +23,19 @@ public class DBGroupDTO {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private Date endDate;
     @NotNull
-    private Place place;
+    private DBPlaceDTO place;
     private String owner;
 
     private int userCount = 1;
 
     public DBGroupDTO() {}
 
-    /*public GroupDTO(String gid,
-                    String groupName,
-                    String description,
-                    Date startDate,
-                    Date endDate,
-                    Place place,
-                    String owner) {
-        this.groupName = groupName;
-        this.description = description;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.place = place;
-        this.owner = owner;
-    }*/
-
     public DBGroupDTO(GroupDTO g) {
         this.groupName = g.getGroupName();
         this.description = g.getDescription();
         this.startDate = g.getStartDate();
         this.endDate = g.getEndDate();
-        this.place = g.getPlace();
+        this.place = new DBPlaceDTO(g.getPlace());
         this.owner = g.getOwner();
     }
 
@@ -72,7 +56,7 @@ public class DBGroupDTO {
         return endDate;
     }
 
-    public Place getPlace() {
+    public DBPlaceDTO getPlace() {
         return place;
     }
 
@@ -101,7 +85,7 @@ public class DBGroupDTO {
         this.endDate = endDate;
     }
 
-    public void setPlace(Place place) {
+    public void setPlace(DBPlaceDTO place) {
         this.place = place;
     }
 

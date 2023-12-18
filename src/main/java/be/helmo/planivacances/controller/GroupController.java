@@ -19,9 +19,8 @@ public class GroupController {
     private GroupService groupServices;
 
     @PostMapping
-    public String createGroup(
-            HttpServletRequest request,
-            @RequestBody GroupDTO group) throws ResponseStatusException {
+    public String createGroup(HttpServletRequest request,
+                              @RequestBody GroupDTO group) throws ResponseStatusException {
 
         String uid = (String) request.getAttribute("uid");
 
@@ -33,19 +32,20 @@ public class GroupController {
             } else throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token invalide");
 
         } catch (ExecutionException | InterruptedException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la creation du groupe");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la creation du groupe");
         }
 
     }
 
     @GetMapping("/{gid}")
     public GroupDTO getGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
-            try {
-                return groupServices.getGroup(gid);
-            } catch (ExecutionException | InterruptedException e) {
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                        "Erreur lors de la récupération du groupe");
-            }
+        try {
+            return groupServices.getGroup(gid);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la récupération du groupe");
+        }
     }
 
     @GetMapping("/list")
@@ -55,7 +55,8 @@ public class GroupController {
         try {
             return groupServices.getGroups(uid);
         } catch (ExecutionException | InterruptedException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la recuperation des groupes");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la recuperation des groupes");
         }
 
     }
@@ -67,13 +68,14 @@ public class GroupController {
         try {
             return groupServices.updateGroup(gid, group);
         } catch (ExecutionException | InterruptedException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la mise à jour du groupe");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Erreur lors de la mise à jour du groupe");
         }
 
     }
 
     @DeleteMapping("/{gid}")
-    public String deleteGroup(@PathVariable("gid") String gid) {
+    public String deleteGroup(@PathVariable("gid") String gid) throws ResponseStatusException {
         return groupServices.deleteGroup(gid);
     }
 }

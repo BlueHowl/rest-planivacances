@@ -47,7 +47,7 @@ public class GroupInviteController {
 
     @PostMapping("/{gid}/{mail}")
     public boolean inviteUser(@PathVariable("gid") String gid,
-                                      @PathVariable("mail") String mail) throws ResponseStatusException {
+                              @PathVariable("mail") String mail) throws ResponseStatusException {
         try {
             String uid = userServices.findUserUidByEmail(mail);
 
